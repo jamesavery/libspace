@@ -41,9 +41,9 @@ namespace dealii {
     /* Test. */
     //    typedef dealii::TrilinosWrappers::SparseMatrix    SparseMatrix;
     //    typedef dealii::TrilinosWrappers::SparsityPattern SparsityPattern;
-    typedef dealii::SparseMatrix<double>    SparseMatrix;
-    typedef dealii::SparsityPattern         SparsityPattern;
-    typedef dealii::ConstraintMatrix        ConstraintMatrix;
+    typedef SparseMatrix<double>    SparseMatrix;
+    typedef SparsityPattern         SparsityPattern;
+    typedef ConstraintMatrix        ConstraintMatrix;
 
     /* Imported types from base classes. */
     typedef ::FESpace<dim,PointFunction_,FEFunction_,FEOperator<dim> > BaseType;
@@ -122,7 +122,7 @@ namespace dealii {
     quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
       quadrature_formula(gauss_order), 
       fe_values(fe, quadrature_formula, 
-		dealii::update_values|dealii::update_JxW_values|dealii::update_quadrature_points|dealii::update_gradients)
+		update_values|update_JxW_values|update_quadrature_points|update_gradients)
     {
       PointWrap<FESpace> p1(leftcorner), p2(leftcorner+dimensions);
       std::vector<size_t> npts(dim); for(size_t i=0;i<dim;i++) npts[i] = npts_[i];
@@ -130,15 +130,15 @@ namespace dealii {
       printf("fe_order    = %d\n"
 	     "gauss_order = %d\n", fe_order, gauss_order);
 
-      dealii::GridGenerator::subdivided_hyper_rectangle(triangulation, npts,p1,p2);
+      GridGenerator::subdivided_hyper_rectangle(triangulation, npts,p1,p2);
       update();  
     }
 
     void absolute_error_estimate(const FEFunction& fe_function, const ScalarFunction& function, 
-				 dealii::Vector<double>& error/*[n_active_cells()]*/) const;
+				 Vector<double>& error/*[n_active_cells()]*/) const;
 
-    void refine_grid(const dealii::Vector<double>& estimated_error_per_cell);
-    void refine_grid(const dealii::Vector<float>& estimated_error_per_cell);
+    void refine_grid(const Vector<double>& estimated_error_per_cell);
+    void refine_grid(const Vector<float>& estimated_error_per_cell);
 
     /* Output -- perhaps move to a separate class.  */
     void write_mesh(const std::string& path) const;
@@ -150,26 +150,26 @@ namespace dealii {
     void update();
     ConstraintMatrix               hanging_node_constraints;
     SparsityPattern                sparsity_pattern;
-    dealii::Triangulation<dim>     triangulation;
-    dealii::FE_Q<dim>              fe;
-    dealii::DoFHandler<dim>        dof_handler;
+    Triangulation<dim>     triangulation;
+    FE_Q<dim>              fe;
+    DoFHandler<dim>        dof_handler;
 
-    dealii::QGauss<dim>  quadrature_formula;
-    dealii::FEValues<dim> fe_values;
+    QGauss<dim>  quadrature_formula;
+    FEValues<dim> fe_values;
 
     SparseMatrix system_matrix;
     SparseMatrix overlap_matrix;
     SparseMatrix laplace_matrix;
   };
 
-  template <class FESpace> class PointWrap : public dealii::Point<FESpace::dim> {
+  template <class FESpace> class PointWrap : public Point<FESpace::dim> {
   public:
     PointWrap(const typename FESpace::coordinate& x){
       for(size_t i=0;i<FESpace::dim;i++) (*this)[i] = x.x[i];
     }
   };
 
-  template <class FESpace, typename Q> class ScalarFunctionWrap : public dealii::Function<FESpace::dim> {
+  template <class FESpace, typename Q> class ScalarFunctionWrap : public Function<FESpace::dim> {
   public:
     static const int dim = FESpace::dim;
     const Function<FESpace::dim,Q>& f;
@@ -178,7 +178,7 @@ namespace dealii {
   ScalarFunctionWrap(const Function<FESpace::dim,Q>& f, const typename FESpace::coordinate *center = NULL) 
     : f(f), center(center) { }
 
-    double value(const dealii::Point<dim> &x,const unsigned int component = 0) const {
+    double value(const Point<dim> &x,const unsigned int component = 0) const {
       double x_[dim];
       for(size_t i=0;i<dim;i++) x_[i] = x[i];
 	
