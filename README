@@ -1,0 +1,47 @@
+Copyright (C) 2008 James Avery <avery@diku.dk>
+
+------------------------------------------------------------------
+			   libspace Version 0.0.0
+------------------------------------------------------------------
+
+libspace aims to define uniform interface to different methods for
+discretizing function spaces over bounded or periodic subsets O of
+R^n, in particular L^1(O), L^2(O) and H^1(O).
+
+With libspace, the programmer should not care whether the
+discretization is done with a regular finite difference grid, a
+non-uniform grid, some finite element method or analytic basis
+functions. The purpose of this is to allow rapid comparison of
+performance characteristics and accuracy of the different approaches
+to ones particular application, and easily plugging in new numerical
+methods without changing application code.
+
+A number of backends implement the actual discretizations.
+
+CURRENT SUPPORT:
+
+Discretization backends:
+
+	+ grid/regulargrid	A simple implementation of uniform grid
+	  			finite differences. Has no dependencies on
+				external libraries.
+	+ fem/deal.II/		FEM discretization using the deal.II finite 
+	  			element Differential Equation Analysis Library.
+				(http://www.dealii.org).
+Storage:
+
+	+ storage/simple	
+	
+SCHEDULED SUPPORT:
+
+Discretization backends:
+
+	+ fem/libmesh		FEM discretization using libmesh 
+	  			(http://libmesh.sourceforge.net)
+	+ fem/dolfin		FEM discretization using libdolfin from the
+	  			FeNiCs project.
+	+ grid/logaritmic
+
+Storage:
+	+ storage/trilinos
+	+ storage/petsc
