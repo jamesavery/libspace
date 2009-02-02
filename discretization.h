@@ -4,8 +4,8 @@
 #ifndef LIBDISC_DISCRETIZATION_H
 # define LIBDISC_DISCRETIZATION_H
 
-#include <libdiscretization/storage/storage.h>
-#include <libdiscretization/function.h>
+#include <libspace/storage/storage.h>
+#include <libspace/function.h>
 
 template <int dim, class PF = PointFunction_Simple<>, class PO = PF >
   class Discretization {	/* Specialized to double -- perhaps templatize field instead. */

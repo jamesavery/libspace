@@ -1,15 +1,12 @@
-#ifndef LIBDISC_LIBMESH_H
+b#ifndef LIBDISC_LIBMESH_H
 # define LIBDISC_LIBMESH_H
 
-#include <libdiscretization/function.h>
-#include <libdiscretization/fem/fespace.h>
-#include <libdiscretization/fem/deal.II/feoperator.h>
-
+#include <libspace/function.h>
+#include <libspace/fem/fespace.h>
+#include <libspace/fem/libmesh/feoperator.h>
 
 #include <libmesh/libmesh.h>
 #include <libmesh/mesh.h>
-  
-
 
 namespace libMesh {
 
@@ -19,11 +16,11 @@ namespace libMesh {
   template <int dim> class FESpace : public ::FESpace<dim,PointFunction_,FEFunction_,FEOperator<dim> > {
   public:
     /* Test. */
-    //    typedef dealii::TrilinosWrappers::SparseMatrix    SparseMatrix;
-    //    typedef dealii::TrilinosWrappers::SparsityPattern SparsityPattern;
-    typedef dealii::SparseMatrix<double>    SparseMatrix;
-    typedef dealii::SparsityPattern         SparsityPattern;
-    typedef dealii::ConstraintMatrix        ConstraintMatrix;
+    //    typedef TrilinosWrappers::SparseMatrix    SparseMatrix;
+    //    typedef TrilinosWrappers::SparsityPattern SparsityPattern;
+    typedef SparseMatrix<double>    SparseMatrix;
+    typedef SparsityPattern         SparsityPattern;
+    typedef ConstraintMatrix        ConstraintMatrix;
 
     /* Imported types from base classes. */
     typedef ::FESpace<dim,PointFunction_,FEFunction_,FEOperator<dim> > BaseType;
@@ -58,11 +55,6 @@ namespace libMesh {
 			    double eps, PointFunction& density) const {
       return BaseType::LoadGaussianToMesh(weight,exponent,center,eps,density);
     }
-/*     void LoadScalar1DFunctionToMesh(PointFunction& density,  Scalar1DFunctionClass& f,  */
-/* 				    double range,  coordinate& cartesianPosition,double weight=1.0) const */
-/*     { */
-/*       return BaseType::LoadScalar1DFunctionToMesh(density,f,range,weight); */
-/*     } */
 
     /* FEFunction interface */
     void LoadFunctionToMesh(double weight, const ScalarFunction& f, 
@@ -99,26 +91,14 @@ namespace libMesh {
     /* Functionality specific to Deal.II-meshes */
     FESpace(const size_t npts_[dim], const coordinate& leftcorner, const coordinate& dimensions, 
 	    size_t fe_order = 1, size_t gauss_order=2) :
-    quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
-      quadrature_formula(gauss_order), 
-      fe_values(fe, quadrature_formula, 
-		dealii::update_values|dealii::update_JxW_values|dealii::update_quadrature_points|dealii::update_gradients)
     {
-      PointWrap<FESpace> p1(leftcorner), p2(leftcorner+dimensions);
-      std::vector<size_t> npts(dim); for(size_t i=0;i<dim;i++) npts[i] = npts_[i];
-
-      printf("fe_order    = %d\n"
-	     "gauss_order = %d\n", fe_order, gauss_order);
-
-      dealii::GridGenerator::subdivided_hyper_rectangle(triangulation, npts,p1,p2);
-      update();  
     }
 
     void absolute_error_estimate(const FEFunction& fe_function, const ScalarFunction& function, 
-				 dealii::Vector<double>& error/*[n_active_cells()]*/) const;
+				 NumericVector<double>& error/*[n_active_cells()]*/) const;
 
-    void refine_grid(const dealii::Vector<double>& estimated_error_per_cell);
-    void refine_grid(const dealii::Vector<float>& estimated_error_per_cell);
+    void refine_grid(const NumericVector<double>& estimated_error_per_cell);
+    void refine_grid(const NumericVector<float>& estimated_error_per_cell);
 
     /* Output -- perhaps move to a separate class.  */
     void write_mesh(const std::string& path) const;
@@ -128,39 +108,39 @@ namespace libMesh {
     /* Internal stuff. */
     void get_positions();
     void update();
-    ConstraintMatrix               hanging_node_constraints;
-    SparsityPattern                sparsity_pattern;
-    dealii::Triangulation<dim>     triangulation;
-    dealii::FE_Q<dim>              fe;
-    dealii::DoFHandler<dim>        dof_handler;
 
-    dealii::QGauss<dim>  quadrature_formula;
-    dealii::FEValues<dim> fe_values;
+    QBase                  quadrature_formula;
+    DofConstraints         dof_constraints;
+    
+    SparsityPattern        sparsity_pattern;
+    Triangulation<dim>     triangulation;
+    FE_Q<dim>              fe;
+    DoFHandler<dim>        dof_handler;
 
     SparseMatrix system_matrix;
     SparseMatrix overlap_matrix;
     SparseMatrix laplace_matrix;
   };
 
-  template <class FESpace> class PointWrap : public dealii::Point<FESpace::dim> {
+  template <class FESpace> class PointWrap : public Point {
   public:
     PointWrap(const typename FESpace::coordinate& x){
-      for(size_t i=0;i<FESpace::dim;i++) (*this)[i] = x.x[i];
+      for(size_t i=0;i<FESpace::dim;i++) (*this)(i) = x.x[i];
     }
   };
 
-  template <class FESpace, typename Q> class ScalarFunctionWrap : public dealii::Function<FESpace::dim> {
+  template <class FESpace> class ScalarFunctionWrap : public BaseFunction {
   public:
     static const int dim = FESpace::dim;
     const Function<FESpace::dim,Q>& f;
     const typename FESpace::coordinate *center;
     
-  ScalarFunctionWrap(const Function<FESpace::dim,Q>& f, const typename FESpace::coordinate *center = NULL) 
+  ScalarFunctionWrap(const Function<FESpace::dim,double>& f, const typename FESpace::coordinate *center = NULL) 
     : f(f), center(center) { }
 
-    double value(const dealii::Point<dim> &x,const unsigned int component = 0) const {
+    Number value(const Point &x) const {
       double x_[dim];
-      for(size_t i=0;i<dim;i++) x_[i] = x[i];
+      for(size_t i=0;i<dim;i++) x_[i] = x(i);
 	
       typename FESpace::coordinate xp(x_);
       if(center != NULL) xp -= *center;

@@ -1,4 +1,4 @@
-#include <libdiscretization/fem/fespace.h>
+#include <libspace/fem/fespace.h>
 
 #define fespace_member(returntype) \
 template <int dim, class PointFunction, class FEF, class FEO> returntype FESpace<dim,PointFunction,FEF,FEO>::

@@ -1,5 +1,5 @@
-#include <libdiscretization/fem/deal.II/mesh.h>
-#include <libdiscretization/function.h>
+#include <libspace/fem/deal.II/mesh.h>
+#include <libspace/function.h>
 #include <numerics/error_estimator.h>
 #include <fe/fe_values.h>
 #include <fe/fe_q.h>

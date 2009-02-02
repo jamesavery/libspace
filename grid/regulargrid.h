@@ -5,7 +5,7 @@
 # define LIBDISC_REGULARGRID_H
 
 #include <sys/types.h>
-#include <libdiscretization/discretization.h>
+#include <libspace/discretization.h>
 
 #include <math.h>
 

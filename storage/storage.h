@@ -5,8 +5,8 @@
 
 #include <complex>
 #include <vector>
-#include <libdiscretization/storage/smallvector.h>
-#include <libdiscretization/storage/smallmatrix.h>
+#include <libspace/storage/smallvector.h>
+#include <libspace/storage/smallmatrix.h>
 
 /* f : X -> Y, where X,Y are metric spaces with scalars in S */
 template <class ContainerClass, class DF, typename Y = double, typename S = double> 
@@ -56,7 +56,7 @@ class DiscreteFunction {
 };
 
 
-#include <libdiscretization/storage/simple.h>
+#include <libspace/storage/simple.h>
 
  
 

@@ -2,7 +2,7 @@
 # define LIBDISC_FUNCTION_H
 
 #include <math.h>
-#include <libdiscretization/storage/storage.h>
+#include <libspace/storage/storage.h>
 
 template <int dim, typename Q> class Function {
  public:

@@ -4,6 +4,8 @@ Copyright (C) 2008 James Avery <avery@diku.dk>
 			   libspace Version 0.0.0
 ------------------------------------------------------------------
 
+*** NB: THIS LIBRARY IS NOT YET FUNCTIONAL. ***
+
 libspace aims to define uniform interface to different methods for
 discretizing function spaces over bounded or periodic subsets O of
 R^n, in particular L^1(O), L^2(O) and H^1(O).

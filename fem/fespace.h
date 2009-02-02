@@ -1,7 +1,7 @@
 #ifndef LIBDISC_FESPACE_H
 # define LIBDISC_FESPACE_H
 
-#include <libdiscretization/discretization.h>
+#include <libspace/discretization.h>
 
 template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_> 
   class FESpace : public Discretization<dim_,PointFunction_> /* FEM Mesh type 1 */, 

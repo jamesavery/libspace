@@ -1,7 +1,7 @@
 #ifndef LIBDISC_FEOPERATOR_H
 # define LIBDISC_FEOPERATOR_H
 
-#include <libdiscretization/fem/deal.II/mesh.h>
+#include <libspace/fem/deal.II/mesh.h>
 /* deal.II */
 #include  <dofs/dof_handler.h>
 #include <lac/sparse_matrix.h>	
