@@ -1,5 +1,5 @@
 #include <math.h>
-#include <libdiscretization/mesh/femmesh.h>
+#include <libspace/mesh/femmesh.h>
 
 /* Integration and inner products */
                                                                  

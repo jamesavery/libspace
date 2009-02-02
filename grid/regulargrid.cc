@@ -1,5 +1,6 @@
-#include <libdiscretization/grid/regulargrid.h>
-#include <numeric>
+#include <libspace/grid/regulargrid.h>
+#include <math.h>
+#include <stdlib.h>
 
 #define grid_member(returntype) template <int dim,class PointFunction> returntype RegularGrid<dim,PointFunction>::
 

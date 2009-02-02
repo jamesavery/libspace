@@ -44,4 +44,3 @@ clean:
 
 clean-output:
 	rm -f *.vtk *.gpl *.eps
-	

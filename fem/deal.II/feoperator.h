@@ -9,19 +9,19 @@
 #include <base/quadrature_lib.h>
 /* /deal.II */
 
-namespace dealII {
+namespace dealii {
   typedef PointFunction_Simple<std::vector<double>,double,double>  PointFunction_; 
-  typedef FEFunction_Simple<dealii::Vector<double>,double,double>     FEFunction_; 
+  typedef FEFunction_Simple<Vector<double>,double,double>     FEFunction_; 
 
   template <int dim> class FESpace;
 
-  template <int dim> class FEOperator : public dealii::SparseMatrix<double> {
+  template <int dim> class FEOperator_ : public SparseMatrix<double> {
   public:
-    typedef FESpace<dim> FESpace;
+    typedef dealii::FESpace<dim> FESpace;
     const   FESpace& space;
 
-    FEOperator(const FESpace& G, const typename FESpace::FEFunction *f = NULL) 
-      : dealii::SparseMatrix<double>(G.sparsity_pattern), space(G) {  if(f != NULL) BuildFromFEFunction(*f);  }
+    FEOperator_(const FESpace& G, const typename FESpace::FEFunction *f = NULL) 
+      : SparseMatrix<double>(G.sparsity_pattern), space(G) {  if(f != NULL) BuildFromFEFunction(*f);  }
 
     void BuildFromFEFunction(const typename FESpace::FEFunction& f){
       using namespace dealii;

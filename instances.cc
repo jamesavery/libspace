@@ -12,6 +12,6 @@ template class RegularGrid<3>;
 #include <libspace/fem/deal.II/mesh.h>
 #include <libspace/fem/deal.II/mesh.cc>
 
-template class dealII::FESpace<1>;
-template class dealII::FESpace<2>;
-template class dealII::FESpace<3>;
+template class dealii::FESpace<1>;
+template class dealii::FESpace<2>;
+template class dealii::FESpace<3>;

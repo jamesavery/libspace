@@ -15,8 +15,7 @@
 // Auxiliary stuff. Perhaps move to separate file.
 int lookup_format(const string *supported_formats, const string& path);
 
-namespace dealII {
-  using namespace dealii;
+namespace dealii {
   using namespace std;
 
 #define fespace_member(returntype) template <int dim> returntype FESpace<dim>::

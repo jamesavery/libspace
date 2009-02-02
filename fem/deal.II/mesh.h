@@ -36,22 +36,22 @@ namespace dealii {
   template <class FESpace> class PointWrap;
   template <class FESpace, typename Q=double> class ScalarFunctionWrap; 
 
-  template <int dim> class FESpace : public ::FESpace<dim,PointFunction_,FEFunction_,FEOperator<dim> > {
+  template <int dim> class FESpace : public ::FESpace<dim,PointFunction_,FEFunction_,FEOperator_<dim> > {
   public:
     /* Test. */
     //    typedef dealii::TrilinosWrappers::SparseMatrix    SparseMatrix;
     //    typedef dealii::TrilinosWrappers::SparsityPattern SparsityPattern;
-    typedef SparseMatrix<double>    SparseMatrix;
-    typedef SparsityPattern         SparsityPattern;
-    typedef ConstraintMatrix        ConstraintMatrix;
+    typedef dealii::SparseMatrix<double>    SparseMatrix;
+    typedef dealii::SparsityPattern         SparsityPattern;
+    typedef dealii::ConstraintMatrix        ConstraintMatrix;
 
     /* Imported types from base classes. */
-    typedef ::FESpace<dim,PointFunction_,FEFunction_,FEOperator<dim> > BaseType;
+    typedef ::FESpace<dim,PointFunction_,FEFunction_,FEOperator_<dim> > BaseType;
     typedef FESpace<dim>                                             SelfType;
 
     typedef typename BaseType::coordinate     coordinate;
     typedef typename BaseType::ScalarFunction ScalarFunction;
-    typedef ScalarFunctionWrap<FESpace> ScalarFunctionWrap;
+    typedef dealii::ScalarFunctionWrap<FESpace> ScalarFunctionWrap;
     typedef typename BaseType::PointFunction  PointFunction;
     typedef typename BaseType::FEFunction     FEFunction;
     typedef typename BaseType::FEOperator     FEOperator;
@@ -148,6 +148,7 @@ namespace dealii {
     /* Internal stuff. */
     void get_positions();
     void update();
+    void update_nonuniform();
     ConstraintMatrix               hanging_node_constraints;
     SparsityPattern                sparsity_pattern;
     Triangulation<dim>     triangulation;
@@ -172,10 +173,10 @@ namespace dealii {
   template <class FESpace, typename Q> class ScalarFunctionWrap : public Function<FESpace::dim> {
   public:
     static const int dim = FESpace::dim;
-    const Function<FESpace::dim,Q>& f;
+    const ::Function<FESpace::dim,Q>& f;
     const typename FESpace::coordinate *center;
     
-  ScalarFunctionWrap(const Function<FESpace::dim,Q>& f, const typename FESpace::coordinate *center = NULL) 
+  ScalarFunctionWrap(const ::Function<FESpace::dim,Q>& f, const typename FESpace::coordinate *center = NULL) 
     : f(f), center(center) { }
 
     double value(const Point<dim> &x,const unsigned int component = 0) const {

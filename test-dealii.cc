@@ -26,7 +26,7 @@ template <int dim> void test_refinement(const options_t& options)
   const double dimensions_[3] = {1,1,1};
   const size_t npts[3] = {options.initial_refinement,options.initial_refinement,options.initial_refinement};
 
-  typedef dealII::FESpace<dim> grid;
+  typedef dealii::FESpace<dim> grid;
 
   typename grid::coordinate zero;
   typename grid::coordinate upperleft(upperleft_);
@@ -72,7 +72,7 @@ template <int dim> void test_poisson(const options_t& options)
   const double dimensions_[3] = {1,1,1};
   const size_t npts[3] = {options.initial_refinement,options.initial_refinement,options.initial_refinement};
 
-  typedef dealII::FESpace<dim> grid;
+  typedef dealii::FESpace<dim> grid;
 
   typename grid::coordinate zero;
   typename grid::coordinate upperleft(upperleft_);
@@ -119,7 +119,7 @@ template <int dim> void test_poisson(const options_t& options)
 
 void test_3d(const options_t& options)
 {
-  using dealII::FESpace;
+  using dealii::FESpace;
   const long double exact[4] = {0.346574791727846916020668859333L,
 				0.163032600042436609935236443504L,
 				0.0940858601000585939092204780071L,
