@@ -1,9 +1,9 @@
 #ifndef LIBDISC_DEALIIMESH_H
 # define LIBDISC_DEALIIMESH_H
 
-#include <libdiscretization/function.h>
-#include <libdiscretization/fem/fespace.h>
-#include <libdiscretization/fem/deal.II/feoperator.h>
+#include <libspace/function.h>
+#include <libspace/fem/fespace.h>
+#include <libspace/fem/deal.II/feoperator.h>
 
 /* deal.II */
 #include <grid/tria.h>
@@ -31,7 +31,7 @@
 #include <lac/trilinos_sparse_matrix.h>
 #include <lac/trilinos_sparsity_pattern.h>
 /* /Test */
-namespace dealII {
+namespace dealii {
 
   template <class FESpace> class PointWrap;
   template <class FESpace, typename Q=double> class ScalarFunctionWrap; 
