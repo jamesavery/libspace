@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#include <libspace/discretization.h>
-#include <libspace/grid/regulargrid.h>
+#include <space/discretization.h>
+#include <space/grid/regulargrid.h>
 
 int main()
 {

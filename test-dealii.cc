@@ -1,11 +1,16 @@
-#include <libspace/fem/deal.II/mesh.h>
-#include <libspace/function.h>
+#include <space/fem/deal.II/mesh.h>
+#include <space/function.h>
 #include <numerics/error_estimator.h>
 #include <fe/fe_values.h>
 #include <fe/fe_q.h>
 
 #include <math.h>
 #include <sstream>
+#  include <iostream>
+#  include <fstream>
+#  include <grid/grid_out.h>
+#  include <numerics/data_out.h>
+#  include <grid/grid_refinement.h>
 
 using namespace std;
 
@@ -15,6 +20,43 @@ typedef struct {
   size_t initial_refinement, max_refinement_steps;
   bool write_mesh;
 } options_t;
+
+
+
+
+template <int dim> class GaussianCharge : public Function<dim,double>
+{
+public: 
+  typedef typename Function<dim,double>::coordinate coordinate;
+  const double Q, sigma;
+  GaussianCharge(double Q, double sigma) : Q(Q), sigma(sigma) {}
+
+  double operator() (const coordinate& x,
+		     const off_t  component = 0) const {
+
+    double norm = sigma * sqrt(2.0 * M_PI);
+    norm        = norm*norm*norm;
+
+    return (Q/norm)*expl(-x.dot(x)/(2.0*sigma*sigma));
+  }
+};
+
+
+template <int dim> class GaussianPotential : public Function<dim,double>
+{
+public: 
+  typedef typename Function<dim,double>::coordinate coordinate;
+
+  const double Q, sigma;
+  GaussianPotential(const GaussianCharge<dim>& q) : Q(q.Q), sigma(q.sigma) {}
+  GaussianPotential(double Q, double sigma) : Q(Q), sigma(sigma) {}
+
+  double operator() (const coordinate& x, const off_t  component = 0) const {
+    double r = sqrt(x.dot(x));
+
+    return (Q/(4. * M_PI * r)) * erf(r /( sqrt(2) * sigma ));
+  }
+};
 
 template <int dim> void test_refinement(const options_t& options)
 {
@@ -36,7 +78,7 @@ template <int dim> void test_refinement(const options_t& options)
   grid G(npts,upperleft,dimensions,options.fe_order,options.gauss_order);
 
 
-  GaussianFunction<dim> gauss(5.0);
+  GaussianCharge<dim>    gauss(1.0,1.0/5.0);
   double relative_error = INFINITY;
   typename grid::FEFunction vHartree;
   
@@ -77,33 +119,45 @@ template <int dim> void test_poisson(const options_t& options)
   typename grid::coordinate zero;
   typename grid::coordinate upperleft(upperleft_);
   typename grid::coordinate dimensions(dimensions_);
-  typename grid::FEFunction density;
 
   grid G(npts,upperleft,dimensions,options.fe_order,options.gauss_order);
 
-  GaussianFunction<dim> gauss(5.0);
+  GaussianCharge<dim> gauss(1.0,1.0/5.0);
+  GaussianPotential<dim> exact_solution(1.0,1.0/5.0);
+  typename grid::ScalarFunctionWrap exact(exact_solution);
+  
   double relative_error = INFINITY;
   typename grid::FEFunction fe_gauss, solution;
-  solution.resize(G.dof_handler.n_dofs());
 
-  G.LoadFunctionToMesh(1.0,gauss,zero,fe_gauss);
 
   for(size_t refinement_step = 0; refinement_step < options.max_refinement_steps 
 	                      && fabs(relative_error)>options.error_cutoff; refinement_step++){
+    typename grid::FEFunction difference;
+    difference.resize(G.n_dofs);
 
- 
+    G.LoadFunctionToMesh(1.0,gauss,zero,fe_gauss);
+
+    G.write_function("rho.gpl",fe_gauss);
+
+    printf("||rho||^2 = %g\n",G.Integrate(fe_gauss,fe_gauss)); 
     G.SolvePoisson(fe_gauss,solution);
+
+    VectorTools::integrate_difference(G.dof_handler,solution.coefficients,exact,difference.coefficients,
+				      G.quadrature_formula, VectorTools::L2_norm);    
+
+    printf("||solution-exact||^2 = %g\n",G.Integrate(difference,difference)); 
+
     if(options.write_mesh){ 	// XXX: write_mesh -> separat fra write_solution
       ostringstream path;
-      path << "poisson" << refinement_step << ".vtk";
+      path << "poisson" << refinement_step << ".gpl";
       G.write_function(path.str(), solution);
     }
 
-    if(refinement_step < options.max_refinement_steps && fabs(relative_error)>options.error_cutoff){
+    if(refinement_step+1 < options.max_refinement_steps && fabs(relative_error)>options.error_cutoff){
       Vector<float> error_estimate(G.triangulation.n_active_cells());
 
       KellyErrorEstimator<dim>::estimate (G.dof_handler,
-					  QGauss<dim-1>(3),
+					  QGauss<dim-1>(options.gauss_order+1),
 					  typename FunctionMap<dim>::type(),
 					  solution.coefficients,
 					  error_estimate);
@@ -111,10 +165,14 @@ template <int dim> void test_poisson(const options_t& options)
       relative_error = error_estimate.l2_norm();
       printf("%d: Total error estimate = %g\n",refinement_step,relative_error);
       G.refine_grid(error_estimate);
-
+      //G.refine_grid(1);
     }
-
   }
+    if(options.write_mesh){ 	// XXX: write_mesh -> separat fra write_solution
+      ostringstream path;
+      path << "poisson-last.gpl";
+      G.write_function(path.str(), solution);
+    }
 }
 
 void test_3d(const options_t& options)

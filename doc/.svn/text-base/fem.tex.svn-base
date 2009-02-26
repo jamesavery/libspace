@@ -1,0 +1,82 @@
+
+\chapter{Finite Element Discretizations}
+
+
+\section{Overview}
+\label{sec:fem-overview}
+
+
+\section{DoF Representations of FE-Functions}
+
+\subsection{Representation}
+\newcommand{\coef}[2]{{#1}_{#2}}
+\newcommand{\Ntotdof}{{N_{\text{total-dof}}}}
+\newcommand{\Ndofspercell}{{N_{\text{dof}}}}
+\newcommand{\representation}[1]{\left[#1\right]}
+\newcommand{\support}[1]{\text{supp}\left(#1\right)}
+% Remove when common is loaded
+\newcommand{\inner}[2]{\left\langle #1\middle|#2\right\rangle}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+
+Formally, we have
+\begin{equation}
+  f_h(x) = \sum_{i=1}^\Ntotdof \coef{f}{i} \phi_i(x); 
+  \ \ \ \ \ \ \
+  \representation{f_h} = (\coef{f}{1},\ldots,\coef{f}{\Ntotdof})
+\end{equation}
+
+\subsection{Function Evaluation}
+Because the DOFs $\phi_i$ have bounded support, one doesn't evaluate the whole
+sum when computing a function value, but only for the $i$ where $x\in\support{\phi_i}$. 
+What this amounts to in terms of practical work is:
+\begin{enumerate}
+\item Find the cell $e$ with $x\in\Omega_e$.
+\item Get the cell's global DOF indices (${k_1},...{k_\Ndofspercell}$).
+\item Sum over cell DOFs: $f_h(x) = \sum_{i=1}^\Ndofspercell f_{k_i} \tilde{\phi}_i(\tilde{x})$.
+\end{enumerate}
+In practice, for example when transferring solutions from one FE-mesh
+to another, one usually wants to do this for a number of points in every
+cell. Thus, one simply iterates over the cells rather than searching for $\Omega_e$, 
+and only step 3 is performed many times. 
+
+\subsection{Computing Representations of Functions}
+
+To obtain the optimal representation $f_h$ of a function $f$, it's
+unfortunately necessary to solve a linear system of
+equations. Specifically, because the DOF basis is not orthogonal, the
+coefficients of the FE-function are $f_i$ such that for $1\le i \le \Ntotdof$:
+\begin{equation}
+  \sum_{i=1}^\Ntotdof f_i \inner{\phi_i}{\phi_j} = \inner{f}{\phi_j}
+\end{equation}
+that is, the vector $\vec{f}_h$ must be the solution to the linear system
+\begin{equation}
+  \mat{M}\vec{f}_h = \vec{f}
+\end{equation}
+where $M_{ij} = \inner{\phi_i}{\phi_j}$.
+\subsection{Coarsening and Refining Representations}
+
+\subsection{Representing Potential Operators}
+
+
+\subsection{Integration and Inner Products}
+
+\subsection{Solving Partial Differential Equations}
+
+
+\section{Point-Value Reperesentations of Functions}
+
+\subsection{Computing Representations of Functions}
+
+\subsection{Coarsening and Refining Representations}
+
+\subsection{Representing Potential Operators}
+
+\subsection{Integration and Inner Products}
+
+\subsection{Solving Partial Differential Equations}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "space"
+%%% End: 

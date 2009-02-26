@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#include <libspace/storage/smallvector.h>
-#include <libspace/storage/smallmatrix.h>
-#include <libspace/storage/storage.h>
+#include <space/storage/smallvector.h>
+#include <space/storage/smallmatrix.h>
+#include <space/storage/storage.h>
 #include <math.h>
 #include <complex>
 #include <iostream>

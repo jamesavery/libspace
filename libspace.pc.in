@@ -1,0 +1,26 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+pkgdatadir=@datadir@/@PACKAGE@
+basesdir=${pkgdatadir}/bases
+lapackcflags=@LAPACK_CFLAGS@
+lapackldflags=@LAPACK_LDFLAGS@
+
+LONGNAME="@LONGNAME@"
+SHORTNAME="@SHORTNAME@"
+WEBPAGE="@WEBPAGE@"
+VERSION="@VERSION@"
+RELEASESTATUS="@RELEASESTATUS@"
+ISODATE=`date +%Y-%m-%d`
+SOURCEDIR="@SOURCEDIR@"
+
+Name: libspace
+Description: A library that abstracts numerical discretizations of function spaces.
+Requires: @REQUIRED_PACKAGES@
+Version: @VERSION@
+Libs: -L${libdir} -lspace 
+Libs.private: @LIBS@
+Cflags: -I${includedir} @CFLAGS@
