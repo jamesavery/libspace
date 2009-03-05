@@ -12,18 +12,21 @@
 #include <libmesh/dof_map.h>
 #include <libmesh/dof_object.h>
 #include <libmesh/fe_type.h>
+#include <libmesh/function_base.h>
+
+#include <Epetra_CrsMatrix.h>
 
 namespace libMesh {
 
   template <class FESpace> class PointWrap;
-  template <class FESpace, typename Q=double> class ScalarFunctionWrap; 
+  template <class FESpace> class ScalarFunctionWrap; 
 
   template <int dim> class FESpace : public ::FESpace<dim,PointFunction_,FEFunction_,FEOperator<dim> > {
   public:
     /* Test. */
     //    typedef TrilinosWrappers::SparseMatrix    SparseMatrix;
     //    typedef TrilinosWrappers::SparsityPattern SparsityPattern;
-    typedef EpetraMatrix<double>    SparseMatrix;
+    typedef Epetra_CrsMatrix    SparseMatrix;
     //    typedef SparsityPattern         SparsityPattern;
     typedef DofConstraints        ConstraintMatrix;
 
@@ -135,10 +138,10 @@ namespace libMesh {
     }
   };
 
-  template <class FESpace> class ScalarFunctionWrap : public BaseFunction {
+  template <class FESpace> class ScalarFunctionWrap : public FunctionBase {
   public:
     static const int dim = FESpace::dim;
-    const Function<FESpace::dim,Q>& f;
+    const Function<FESpace::dim,double>& f;
     const typename FESpace::coordinate *center;
     
   ScalarFunctionWrap(const Function<FESpace::dim,double>& f, const typename FESpace::coordinate *center = NULL) 

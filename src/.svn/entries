@@ -1,0 +1,16 @@
+9
+
+dir
+0
+svn+ssh://svn/nanopar/libspace/src
+svn+ssh://svn
+add
+
+
+
+
+
+
+
+svn:special svn:externals svn:needs-lock
+
