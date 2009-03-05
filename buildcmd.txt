@@ -1,0 +1,1 @@
+CXX=g++ CXXFLAGS="$GCC_OPTFLAGS" ./configure --prefix=/usr/local/nanopar --with-compiler-type=intel
