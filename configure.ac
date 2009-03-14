@@ -1,11 +1,8 @@
-# This file is part of The Generalized Sturmian Library
+# This file is part of libspace
 #
 # Authors:  James Avery (avery@diku.dk)
-# Content:  Sturmian system: source code for main `configure' script
 #
 # Process this file with autoconf to produce a configure script.
-#
-# Created: February 16th 2006. Last modified: September 9th 2008 05:29
 
 #define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))
 
@@ -16,11 +13,12 @@ AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
 
 MAJORVERSION=0
 MINORVERSION=1
+LTAGE=`date +%j | sed 's/^0*//'`
 
 LONGNAME="Space Discretization Library"
 SHORTNAME="libspace"
 WEBPAGE="http://libspace.kvante.org"
-VERSION=$MAJORVERSION.$MINORVERSION.svnversion
+VERSION=$MAJORVERSION.$MINORVERSION.$LTAGE
 RELEASESTATUS="release"
 ISODATE=`date +%Y-%m-%d`
 SOURCEDIR=`pwd`
@@ -30,8 +28,10 @@ SOURCEDIR=`pwd`
 AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR([./])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([foreign 1.7.3])
+AM_INIT_AUTOMAKE(libspace,$VERSION)
 
+AC_CONFIG_HEADERS([./include/space/config.h])
+AX_PREFIX_CONFIG_H([./include/space/libspace-config.h])
 
 
 # ----- USER OPTIONS -----
@@ -61,17 +61,21 @@ AC_ARG_ENABLE(lapack,
 )
 
 PKG_CHECK_MODULES(NETCDF,      [netcdf >= 3],
-			       [AC_DEFINE(HAS_NETCDF) REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf"])
+			       [AC_DEFINE(HAS_NETCDF,1,[System has netcdf]) REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf"])
 PKG_CHECK_MODULES(NETCDF_CXX,  [netcdf-c++ >= 3],
-			       [AC_DEFINE(HAS_NETCDF_CXX) REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf-c++"])
+			       [AC_DEFINE(HAS_NETCDF_CXX,1,[System has netcdf-c++]) REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf-c++"])
 PKG_CHECK_MODULES(LIBMESH,  libmesh,
-			    [AC_DEFINE(HAS_LIBMESH) REQUIRED_PACKAGES="$REQUIRED_PACKAGES libmesh"])
+			    [AC_DEFINE(HAS_LIBMESH,1,[System has the libmesh FEM library (http://libmesh.sf.net)]) 
+			    REQUIRED_PACKAGES="$REQUIRED_PACKAGES libmesh"])
 PKG_CHECK_MODULES(DEALII,   deal.II,
-			    [AC_DEFINE(HAS_DEALII) REQUIRED_PACKAGES="$REQUIRED_PACKAGES deal.II"])
+			    [AC_DEFINE(HAS_DEALII,1,[System has the deal.II FEM library (http://dealii.org)]) 
+			    REQUIRED_PACKAGES="$REQUIRED_PACKAGES deal.II"])
 PKG_CHECK_MODULES(DOLFIN,   dolfin,
-			    [AC_DEFINE(HAS_DOLFIN) REQUIRED_PACKAGES="$REQUIRED_PACKAGES dolfin"])
+			    [AC_DEFINE(HAS_DOLFIN,1,[System has the Dolfin FEM library (http://fenics.org)]) 
+			    REQUIRED_PACKAGES="$REQUIRED_PACKAGES dolfin"])
 PKG_CHECK_MODULES(TRILINOS, [trilinos >= 6],
-			    [AC_DEFINE(HAS_TRILINOS) REQUIRED_PACKAGES="$REQUIRED_PACKAGES trilinos"])
+			    [AC_DEFINE(HAS_TRILINOS,1,[System has Trilinos (http://trilinos.sandia.gov)]) 
+			    REQUIRED_PACKAGES="$REQUIRED_PACKAGES trilinos"])
 
 AC_SUBST(NETCDF_CFLAGS NETCDF_LIBS LIBMESH_CFLAGS LIBMESH_LIBS DOLFIN_CFLAGS
          DOLFIN_LIBS TRILINOS_CFLAGS TRILINOS_LIBS DEALII_CFLAGS DEALII_LIBS REQUIRED_PACKAGES)
@@ -79,7 +83,6 @@ AC_SUBST(NETCDF_CFLAGS NETCDF_LIBS LIBMESH_CFLAGS LIBMESH_LIBS DOLFIN_CFLAGS
 
 # ----- PROGRAMS -----
 AC_PROG_CC
-AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 AC_C_INLINE
@@ -91,7 +94,6 @@ LT_INIT
 AC_CHECK_LIB([m], [sin])
 
 # ----- HEADER FILES -----
-AC_FUNC_ALLOCA
 AC_HEADER_STDC
 AC_CHECK_HEADERS([limits.h stdlib.h string.h unistd.h])
 
@@ -172,7 +174,7 @@ if test x$lapackpath != xno
 then 
  if test x$USE_LAPACK != xno
   then
-	AC_DEFINE(USE_LAPACK)
+	AC_DEFINE(USE_LAPACK,1,[A LAPACK (http://netlib.org) implementation exists and is used.])
   else
 	AC_MSG_WARN([[ 
 
@@ -192,9 +194,11 @@ fi
 AM_CONDITIONAL(USE_LAPACK,test x$USE_LAPACK = xyes)
 
 
-AC_SUBST(SOURCEDIR LONGNAME WEBPAGE SHORTNAME RELEASESTATUS OPTIONAL_TARGETS ISODATE MAJORVERSION MINORVERSION VERSION EXTRA_SUBDIRS LAPACK_LDFLAGS LAPACK_CFLAGS USE_LAPACK)
+AC_SUBST(SOURCEDIR LONGNAME WEBPAGE SHORTNAME RELEASESTATUS OPTIONAL_TARGETS ISODATE MAJORVERSION MINORVERSION LTAGE VERSION EXTRA_SUBDIRS LAPACK_LDFLAGS LAPACK_CFLAGS USE_LAPACK)
 
 AC_CONFIG_FILES([Makefile
+		 src/Makefile
+		 test/Makefile
 	         README
 		 libspace.pc])
 
