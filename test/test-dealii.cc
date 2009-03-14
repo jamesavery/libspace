@@ -22,8 +22,6 @@ typedef struct {
 } options_t;
 
 
-
-
 template <int dim> class GaussianCharge : public Function<dim,double>
 {
 public: 
