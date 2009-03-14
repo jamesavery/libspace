@@ -67,7 +67,12 @@ template <int dim> void test_hydrogen(const options_t& options)
 
   grid G(npts,upperleft,dimensions,options.fe_order,options.gauss_order);
   
+  typename grid::FEFunction   V0x;
+  G.LoadFunctionToMesh(1.0,CoulombAttraction<dim>(1),grid::coordinate(),V0x);
+
+  typename grid::FEOperator V0(G,&V0x);
   
+
 }
 
 
