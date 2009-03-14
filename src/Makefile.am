@@ -9,19 +9,19 @@ LIBSPACE_LT_AGE =      0
 lib_LTLIBRARIES = libspace.la
 
 INCLUDE_FILES = \
-$(top_srcdir)/include/space/discretization.h \
-$(top_srcdir)/include/space/fem/deal.II/mesh.h \
-$(top_srcdir)/include/space/fem/deal.II/feoperator.h \
-$(top_srcdir)/include/space/fem/fespace.h \
-$(top_srcdir)/include/space/fem/libmesh/autoheader-undef.h\
-$(top_srcdir)/include/space/fem/libmesh/feoperator.h\
-$(top_srcdir)/include/space/fem/libmesh/mesh.h\
-$(top_srcdir)/include/space/function.h\
-$(top_srcdir)/include/space/grid/regulargrid.h\
-$(top_srcdir)/include/space/storage/storage.h\
-$(top_srcdir)/include/space/storage/simple.h\
-$(top_srcdir)/include/space/storage/smallvector.h\
-$(top_srcdir)/include/space/storage/smallmatrix.h
+$(top_srcdir)/include/shibuya-wulfman/discretization.h \
+$(top_srcdir)/include/shibuya-wulfman/fem/deal.II/mesh.h \
+$(top_srcdir)/include/shibuya-wulfman/fem/deal.II/feoperator.h \
+$(top_srcdir)/include/shibuya-wulfman/fem/feshibuya-wulfman.h \
+$(top_srcdir)/include/shibuya-wulfman/fem/libmesh/autoheader-undef.h\
+$(top_srcdir)/include/shibuya-wulfman/fem/libmesh/feoperator.h\
+$(top_srcdir)/include/shibuya-wulfman/fem/libmesh/mesh.h\
+$(top_srcdir)/include/shibuya-wulfman/function.h\
+$(top_srcdir)/include/shibuya-wulfman/grid/regulargrid.h\
+$(top_srcdir)/include/shibuya-wulfman/storage/storage.h\
+$(top_srcdir)/include/shibuya-wulfman/storage/simple.h\
+$(top_srcdir)/include/shibuya-wulfman/storage/smallvector.h\
+$(top_srcdir)/include/shibuya-wulfman/storage/smallmatrix.h
 
 libspace_la_SOURCES = \
 misc.cc grid/regulargrid.cc fem/fespace_pointwise.cc \
