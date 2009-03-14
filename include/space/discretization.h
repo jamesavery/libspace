@@ -4,7 +4,7 @@
 #ifndef LIBDISC_DISCRETIZATION_H
 # define LIBDISC_DISCRETIZATION_H
 
-#include <space/config.h>
+#include <space/libspace-config.h>
 #include <space/storage/storage.h>
 #include <space/function.h>
 
