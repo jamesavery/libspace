@@ -54,7 +54,7 @@ template  <typename ContainerClass=std::vector<double>, typename Y = double, typ
   using BaseType::coefficients;
   /* Construction */
   PointFunction_Simple() {}
-  PointFunction_Simple(const ContainerClass &cs) : BaseType(cs) {}
+  PointFunction_Simple(const ContainerClass &cs) : BaseType(cs) {} 
 
   /* Point wise operations */
  pointwise_operator(+, (*c) += rhs,Y);

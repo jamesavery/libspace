@@ -98,6 +98,9 @@ template <int dim, typename X = double, typename S = double> class SmallVector {
     return sum;
   }
 
+ X operator[](const size_t i) const { return x[i]; }
+ X& operator[](const size_t i) { return x[i]; }
+
  friend std::ostream& operator<<(std::ostream& F, const SmallVector& v){
     F << "[ ";
     for(size_t i=0;i<dim;i++) F << v.x[i] << " ";

@@ -36,8 +36,8 @@ template <int dim, class PointFunction_ = PointFunction_Simple<> >
 			  const coordinate& position, PointFunction& density) const;
   void LoadGaussianToMesh(double weight, double exponent, const coordinate& position, 
 			  double eps, PointFunction& density) const;
-  void LoadScalar1DFunctionToMesh(PointFunction& density,  Scalar1DFunctionClass& f, 
-				  double range,  coordinate& cartesianPosition,double weight=1.0) const;
+  void LoadScalar1DFunctionToMesh(PointFunction& density,  const Scalar1DFunctionClass& f, 
+				  double range,  const coordinate& cartesianPosition,double weight=1.0) const;
 
   /* Integration and inner products */
   double Integrate(const PointFunction& fvalues) const;

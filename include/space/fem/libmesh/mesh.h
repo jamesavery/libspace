@@ -36,11 +36,11 @@ namespace libMesh {
 
     typedef typename BaseType::coordinate     coordinate;
     typedef typename BaseType::ScalarFunction ScalarFunction;
-    typedef ScalarFunctionWrap<FESpace> ScalarFunctionWrap;
+    //    typedef libMesh::ScalarFunctionWrap<FESpace> ScalarFunctionWrap;
     typedef typename BaseType::PointFunction  PointFunction;
     typedef typename BaseType::FEFunction     FEFunction;
     typedef typename BaseType::FEOperator     FEOperator;
-    typedef FEFunction                        DiscreteFunction;
+    typedef FEFunction                         DiscreteFunction;
     using BaseType::fe_weights;
 
     /* PointFunction interface is inherited from FESpace. */

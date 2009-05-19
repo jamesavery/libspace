@@ -25,8 +25,8 @@ grid_member(void) LoadGaussianToMesh(double weight, double exponent,
   LoadFunctionToMesh(weight, f, center, density);
 }
 
-grid_member(void) LoadScalar1DFunctionToMesh(PointFunction& density,  Scalar1DFunctionClass& f, 
-					     double range,  coordinate& center,double weight) const
+grid_member(void) LoadScalar1DFunctionToMesh(PointFunction& density,  const Scalar1DFunctionClass& f, 
+					     double range,  const coordinate& center,double weight) const
 {
   RadialFunction<dim> f3D(f);
   LoadFunctionToMesh(weight, f3D, center, density);  

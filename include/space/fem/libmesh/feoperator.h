@@ -6,6 +6,7 @@
 #include <libmesh/sparse_matrix.h>
 #include <space/fem/libmesh/mesh.h>
 
+
 namespace libMesh {
   typedef PointFunction_Simple<std::vector<double>,double,double>  PointFunction_; 
   typedef FEFunction_Simple<NumericVector<double>,double,double>     FEFunction_; 
@@ -14,7 +15,7 @@ namespace libMesh {
 
   template <int dim> class FEOperator : public SparseMatrix<double> {
   public:
-    typedef FESpace<dim> FESpace;
+    typedef libMesh::FESpace<dim> FESpace;
     const   FESpace& space;
 
     FEOperator(const FESpace& G, const typename FESpace::FEFunction *f = NULL) 
