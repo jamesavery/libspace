@@ -3,17 +3,46 @@
 
 #include <space/fem/deal.II/mesh.h>
 /* deal.II */
-#include  <dofs/dof_handler.h>
-#include <lac/sparse_matrix.h>	
+#include <dofs/dof_handler.h>
 #include <fe/fe_values.h>
 #include <base/quadrature_lib.h>
+
+#include <lac/full_matrix.h>
+#include <lac/solver_gmres.h>
+#include <lac/solver_cg.h>
+#include <lac/trilinos_block_vector.h>
+#include <lac/trilinos_sparse_matrix.h>
+#include <lac/trilinos_block_sparse_matrix.h>
+#include <lac/trilinos_precondition.h>
+
+#include <lac/full_matrix.h>
+#include <lac/solver_gmres.h>
+#include <lac/solver_cg.h>
+#include <lac/trilinos_block_vector.h>
+#include <lac/trilinos_sparse_matrix.h>
+#include <lac/trilinos_block_sparse_matrix.h>
+#include <lac/trilinos_precondition.h>
+
 /* /deal.II */
+/* deal.II+Trilinos */
+#include <lac/full_matrix.h>
+#include <lac/solver_gmres.h>
+#include <lac/solver_cg.h>
+#include <lac/trilinos_block_vector.h>
+#include <lac/trilinos_sparse_matrix.h>
+#include <lac/trilinos_block_sparse_matrix.h>
+#include <lac/trilinos_precondition.h>
+/* /deal.II+Trilinos */
+/* Trilinos */
+#include <Epetra_Map.h>
+#include <Epetra_FEVector.h>
+/* /Trilinos */
 
 namespace dealii {
-  template <int dim> class FESpace;
+  typedef PointFunction_Epetra  PointFunction_; 
+  typedef FEFunction_Epetra     FEFunction_; 
 
-  typedef PointFunction_Simple<std::vector<double>,double,double>  PointFunction_; 
-  typedef FEFunction_Simple<Vector<double>,double,double>  FEFunction_; 
+  template <int dim> class FESpace;
 
   template <int dim> class FEOperator_ : public SparseMatrix<double> {
   public:

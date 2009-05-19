@@ -3,7 +3,8 @@
 
 #include <space/function.h>
 #include <space/fem/fespace.h>
-#include <space/fem/deal.II/feoperator.h>
+//#include <space/fem/deal.II/feoperator.h>
+#include <space/fem/deal.II/feoperator.trilinoswrapper.h>
 
 /* deal.II */
 #include <grid/tria.h>
@@ -27,19 +28,24 @@
 #include <lac/precondition.h>
 /* /deal.II */
 
+#include <lac/trilinos_sparse_matrix.h>
+#include <lac/trilinos_sparsity_pattern.h>
+
 
 namespace dealii {
 
   template <class FESpace> class PointWrap;
   template <class FESpace, typename Q=double> class ScalarFunctionWrap; 
 
-
   template <int dim> class FESpace : public ::FESpace<dim,PointFunction_,FEFunction_,FEOperator_<dim> > {
   public:
     /* Test. */
-    typedef dealii::SparseMatrix<double>    SparseMatrix;
-    typedef dealii::SparsityPattern         SparsityPattern;
-    typedef dealii::Vector<double>          cellVector;
+    typedef TrilinosWrappers::SparseMatrix    SparseMatrix;
+    typedef TrilinosWrappers::SparsityPattern SparsityPattern;
+    typedef TrilinosWrappers::Vector          cellVector;
+    //    typedef dealii::SparseMatrix<double>    SparseMatrix;
+    //    typedef dealii::SparsityPattern         SparsityPattern;
+    //    typedef dealii::Vector<double> cellVector;
     typedef dealii::ConstraintMatrix        ConstraintMatrix;
 
     /* Imported types from base classes. */
@@ -88,8 +94,8 @@ namespace dealii {
 			    const coordinate& position, FEFunction& density) const;
     void LoadGaussianToMesh(double weight, double exponent, const coordinate& position, 
 			    double eps, FEFunction& density) const;
-    void LoadScalar1DFunctionToMesh(FEFunction& density,  const Scalar1DFunctionClass& f, 
-				    double range,  const coordinate& cartesianPosition,double weight=1.0) const;
+    void LoadScalar1DFunctionToMesh(FEFunction& density,  Scalar1DFunctionClass& f, 
+				    double range,  coordinate& cartesianPosition,double weight=1.0) const;
 
     /* Integration and inner products */
     double Integrate(const FEFunction& fvalues) const;
@@ -102,8 +108,6 @@ namespace dealii {
     /* Solving PDE's */
     void SolvePoisson(const FEFunction& density, FEFunction& result);
     void SolvePoisson(const PointFunction& density, PointFunction& result);
-
-    double Value (const FEFunction& f, const coordinate& x) const;
 
     /* <messy> */
     void   ConstructPointFunction(const FEFunction& f, PointFunction& fp) const;
@@ -118,11 +122,22 @@ namespace dealii {
     /* </messy> */
 
     /* Functionality specific to Deal.II-meshes */
-    FESpace(const size_t npts[dim], const coordinate& leftcorner, const coordinate& dimensions, 
-	    size_t fe_order = 1, size_t gauss_order=2);
+    FESpace(const size_t npts_[dim], const coordinate& leftcorner, const coordinate& dimensions, 
+	    size_t fe_order = 1, size_t gauss_order=2) :
+    quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
+      quadrature_formula(gauss_order), 
+      fe_values(fe, quadrature_formula, 
+		update_values|update_JxW_values|update_quadrature_points|update_gradients)
+    {
+      PointWrap<FESpace> p1(leftcorner), p2(leftcorner+dimensions);
+      std::vector<size_t> npts(dim); for(size_t i=0;i<dim;i++) npts[i] = npts_[i];
 
-    FESpace(const size_t npts[dim], const double cell[dim*dim],
-	    size_t fe_order = 1, size_t gauss_order=2);
+      printf("fe_order    = %d\n"
+	     "gauss_order = %d\n", fe_order, gauss_order);
+
+      GridGenerator::subdivided_hyper_rectangle(triangulation, npts,p1,p2);
+      update();  
+    }
 
     void absolute_error_estimate(const FEFunction& fe_function, const ScalarFunction& function, 
 				 cellVector& error/*[n_active_cells()]*/) const;
@@ -181,27 +196,6 @@ namespace dealii {
       return f(xp);
     }
   };
-
-  template <int dim> class FEInterpolationFunction : public ::Function<dim,double> {
-  public:
-    typedef typename FESpace<dim>::FEFunction FEFunction;
-
-    FEInterpolationFunction(const FEFunction& f, const FESpace<dim>& space){
-      /* For each cell c
-       *  fe_values.reinit(c) 
-       *  fe_values.get_function_values(f,values)
-       *  fe_values.get_quadrature_points(points)
-       *  fip = interpolationfunction(points,values);
-       *  ...noget med f.eks. BSP-trae. 
-       */
-      /* Alternativ: 
-       * allvalues = space.ConstructPointFunction(f);
-       * allpoints = space.point_positions
-       * fip = interpolationfunction(allpoints,allvalues) -- brug eksternt lib. 
-       */
-    }
-  };
-
 }
 
 

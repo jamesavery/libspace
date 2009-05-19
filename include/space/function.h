@@ -30,10 +30,45 @@ template <int dim, typename Q> class ConstantFunction : public Function<dim,Q> {
   const Q c;
   ConstantFunction(const Q& c) : c(c) {}
   
-  double operator()(const coordinate& x, const off_t component=0) const {
+  Q operator()(const coordinate& x, const off_t component=0) const {
     return c;
   }
 };
+
+template <int dim, typename Q> class SuperPositionFunction: public Function<dim,Q> {
+ public:
+  typedef typename Function<dim,Q>::coordinate coordinate;
+
+  std::vector<double> coefficients;
+  std::vector<coordinate> centers;
+  std::vector< const Function<dim,Q> const * > funs;
+
+  SuperPositionFunction(){}
+
+  void add_function(const Function<dim,Q>& fun){
+    coefficients.push_back(1.0);
+    centers.push_back(coordinate());
+    funs.push_back(&fun);
+  }
+
+  void add_function(const double coefficient, const coordinate& center, const Function<dim,Q>& fun){
+    coefficients.push_back(coefficient);
+    centers.push_back(center);
+    funs.push_back(&fun);
+  }
+
+  Q operator()(const coordinate& x, const off_t component=0) const {
+    const size_t m = funs.size();
+    double value = 0;
+    for(size_t i=0;i<m;i++){
+      const coordinate &center = centers[i];
+      value += coefficients[i]*funs[i](x - center);
+    }
+    return value;
+  }
+};
+
+SuperPositionFunction<3,double> mammam;
 
 /* MISSING: Normalization constant */
 template <int dim> class GaussianFunction : public Function<dim,double> {

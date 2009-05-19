@@ -21,8 +21,8 @@ template <int dim, class PF = PointFunction_Simple<>, class PO = PF >
 				  const coordinate& center, PF& density) const = 0;
   virtual void LoadGaussianToMesh(double weight, double exponent, const coordinate& center, 
 				  double eps, PF& density) const = 0;
-  virtual void LoadScalar1DFunctionToMesh(PF& density,  Scalar1DFunctionClass& f, 
-				  double range,  coordinate& center,double weight=1.0) const = 0;
+  virtual void LoadScalar1DFunctionToMesh(PF& density,  const Scalar1DFunctionClass& f, 
+				  double range,  const coordinate& center,double weight=1.0) const = 0;
 
   /* Integration and inner products */
   virtual double Integrate(const PF& f) const = 0;

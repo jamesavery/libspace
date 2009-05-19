@@ -109,7 +109,7 @@ template <int dim> void test_poisson(const options_t& options)
   using namespace dealii;
 
   const double upperleft_[3]  = {-.5,-.5,-.5};
-  const double dimensions_[3] = {1,1,1};
+  const double dimensions_[3] = {10,10,10};
   const size_t npts[3] = {options.initial_refinement,options.initial_refinement,options.initial_refinement};
 
   typedef dealii::FESpace<dim> grid;
@@ -120,12 +120,12 @@ template <int dim> void test_poisson(const options_t& options)
 
   grid G(npts,upperleft,dimensions,options.fe_order,options.gauss_order);
 
-  GaussianCharge<dim> gauss(1.0,1.0/5.0);
-  GaussianPotential<dim> exact_solution(1.0,1.0/5.0);
+  GaussianCharge<dim> gauss(1.0,1.0/2.0);
+  GaussianPotential<dim> exact_solution(1.0,1.0/2.0);
   typename grid::ScalarFunctionWrap exact(exact_solution);
   
   double relative_error = INFINITY;
-  typename grid::FEFunction fe_gauss, solution;
+  typename grid::FEFunction fe_gauss, fe_exact, solution;
 
 
   for(size_t refinement_step = 0; refinement_step < options.max_refinement_steps 
@@ -134,6 +134,7 @@ template <int dim> void test_poisson(const options_t& options)
     difference.resize(G.n_dofs);
 
     G.LoadFunctionToMesh(1.0,gauss,zero,fe_gauss);
+    G.LoadFunctionToMesh(1.0,exact_solution,zero,fe_exact);
 
     G.write_function("rho.gpl",fe_gauss);
 
@@ -160,7 +161,8 @@ template <int dim> void test_poisson(const options_t& options)
 					  solution.coefficients,
 					  error_estimate);
 
-      relative_error = error_estimate.l2_norm();
+      // Actually, absolute error.
+      relative_error = G.Integrate(difference,difference);///G.Integrate(fe_exact,fe_exact);
       printf("%d: Total error estimate = %g\n",refinement_step,relative_error);
       G.refine_grid(error_estimate);
       //G.refine_grid(1);

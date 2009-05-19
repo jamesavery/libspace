@@ -21,8 +21,8 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
 			  const coordinate& center, PointFunction& density) const;
   void LoadGaussianToMesh(double weight, double exponent, const coordinate& center, 
 			  double eps, PointFunction& density) const;
-  void LoadScalar1DFunctionToMesh(PointFunction& density,  Scalar1DFunctionClass& f, 
-				  double range,  coordinate& center,double weight=1.0) const;
+  void LoadScalar1DFunctionToMesh(PointFunction& density,  const Scalar1DFunctionClass& f, 
+				  double range,  const coordinate& center,double weight=1.0) const;
 
 
   /* Integration and inner products */
@@ -38,8 +38,8 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
 			  const coordinate& position, FEFunction& density) const = 0;
   virtual void LoadGaussianToMesh(double weight, double exponent, const coordinate& position, 
 			  double eps, FEFunction& density) const = 0;
-  virtual void LoadScalar1DFunctionToMesh(FEFunction& density,  Scalar1DFunctionClass& f, 
-				  double range,  coordinate& cartesianPosition,double weight=1.0) const = 0;
+  virtual void LoadScalar1DFunctionToMesh(FEFunction& density,  const Scalar1DFunctionClass& f, 
+				  double range,  const coordinate& cartesianPosition,double weight=1.0) const = 0;
 
   virtual double Integrate(const FEFunction& f) const = 0;
   virtual double Integrate(const FEFunction& f, const FEFunction& g) const = 0;

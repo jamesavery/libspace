@@ -9,11 +9,14 @@
 #include <base/quadrature_lib.h>
 /* /deal.II */
 
-namespace dealii {
-  template <int dim> class FESpace;
+#include <lac/trilinos_sparse_matrix.h>
+#include <lac/trilinos_sparsity_pattern.h>
 
+namespace dealii {
   typedef PointFunction_Simple<std::vector<double>,double,double>  PointFunction_; 
-  typedef FEFunction_Simple<Vector<double>,double,double>  FEFunction_; 
+  typedef FEFunction_Simple<TrilinosWrappers::Vector,double,double>     FEFunction_; 
+
+  template <int dim> class FESpace;
 
   template <int dim> class FEOperator_ : public SparseMatrix<double> {
   public:
