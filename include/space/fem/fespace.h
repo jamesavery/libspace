@@ -17,6 +17,7 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
 
   /* PointFunction-interface. TODO: Det er lidt rodet med PointFunction og FEFunction sammen. Split? */
   /* Adding scalar functions to a mesh density */
+  void LoadFunctionToMesh(const ScalarFunction& f, PointFunction& density) const;
   void LoadFunctionToMesh(double weight, const ScalarFunction& f, 
 			  const coordinate& center, PointFunction& density) const;
   void LoadGaussianToMesh(double weight, double exponent, const coordinate& center, 
@@ -34,6 +35,7 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
 
 
   /* FEFunction-interface. Library-dependent. */
+  void LoadFunctionToMesh(const ScalarFunction& f, FEFunction& density) const;
   virtual void LoadFunctionToMesh(double weight, const ScalarFunction& f, 
 			  const coordinate& position, FEFunction& density) const = 0;
   virtual void LoadGaussianToMesh(double weight, double exponent, const coordinate& position, 

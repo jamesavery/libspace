@@ -52,7 +52,20 @@ LoadFunctionToMesh(double weight, const ScalarFunction& f,
 
   for(;rho!=end;rho++,position++){
     const coordinate &x = *position;
-    (*rho) = weight*f(x-center) + (1.0-weight)*(*rho);
+    (*rho) += weight*f(x-center);
+  }
+}
+
+fespace_member(void)
+LoadFunctionToMesh(const ScalarFunction& f, PointFunction& density) const 
+{
+  density.resize(point_weights.size());
+  typename std::vector<coordinate>::const_iterator position = point_positions.begin();
+  typename PointFunction::iterator rho = density.begin(), end = density.end();
+
+  for(;rho!=end;rho++,position++){
+    const coordinate &x = *position;
+    (*rho) += f(x);
   }
 }
 
@@ -65,8 +78,8 @@ LoadGaussianToMesh(double weight, double exponent, const coordinate& center,
 }
 
 fespace_member(void)
-LoadScalar1DFunctionToMesh(PointFunction& density,  Scalar1DFunctionClass& f, 
-				double range,  coordinate& center,double weight) const 
+LoadScalar1DFunctionToMesh(PointFunction& density,  const Scalar1DFunctionClass& f, 
+			   double range,  const coordinate& center,double weight) const 
 {
   RadialFunction<dim> f3D(f);
   LoadFunctionToMesh(weight, f3D, center, density);    

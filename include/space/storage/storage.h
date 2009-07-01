@@ -24,13 +24,13 @@ class DiscreteFunction {
  DiscreteFunction(const container_type &cs) : coefficients(cs) {}
 
  /* Abstract interface */
- virtual DF& operator + (const DF& ) const = 0;
- virtual DF& operator - (const DF& ) const = 0;
+ virtual DF  operator + (const DF& ) const = 0;
+ virtual DF  operator - (const DF& ) const = 0;
 
  virtual DF& operator +=(const DF& ) = 0;
  virtual DF& operator -=(const DF& ) = 0;
 
- virtual DF& operator * (const S& ) const = 0;
+ virtual DF  operator * (const S& ) const = 0;
  virtual DF& operator *=(const S& ) = 0;
 
  /* XXX: No obvious way of doing multiplication without integration for dofs */

@@ -15,3 +15,11 @@ template class RegularGrid<3>;
 template class dealii::FESpace<1>;
 template class dealii::FESpace<2>;
 template class dealii::FESpace<3>;
+
+
+// XXX: Kaempe hack. Hvad gaar galt?
+#include <vector>
+#include <lac/vector.h>
+template class FESpace<1, PointFunction_Simple<std::vector<double, std::allocator<double> >, double, double>, FEFunction_Simple<dealii::Vector<double>, double, double>, dealii::FEOperator_<1> >;
+template class FESpace<2, PointFunction_Simple<std::vector<double, std::allocator<double> >, double, double>, FEFunction_Simple<dealii::Vector<double>, double, double>, dealii::FEOperator_<2> >;
+template class FESpace<3, PointFunction_Simple<std::vector<double, std::allocator<double> >, double, double>, FEFunction_Simple<dealii::Vector<double>, double, double>, dealii::FEOperator_<3> >;

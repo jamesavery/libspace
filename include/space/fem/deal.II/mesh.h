@@ -40,6 +40,7 @@ namespace dealii {
     typedef dealii::SparseMatrix<double>    SparseMatrix;
     typedef dealii::SparsityPattern         SparsityPattern;
     typedef dealii::Vector<double>          cellVector;
+    typedef dealii::Vector<double>          dofVector;
     typedef dealii::ConstraintMatrix        ConstraintMatrix;
 
     /* Imported types from base classes. */
@@ -69,6 +70,9 @@ namespace dealii {
       return BaseType::Integrate(f,V,g); 
     }
 
+    void LoadFunctionToMesh(const ScalarFunction& f, PointFunction& density) const {
+      return BaseType::LoadFunctionToMesh(f,density);
+    }
     void LoadFunctionToMesh(double weight, const ScalarFunction& f, 
 			    const coordinate& center, PointFunction& density) const {
       return BaseType::LoadFunctionToMesh(weight,f,center,density);
@@ -86,6 +90,7 @@ namespace dealii {
     /* FEFunction interface */
     void LoadFunctionToMesh(double weight, const ScalarFunction& f, 
 			    const coordinate& position, FEFunction& density) const;
+    void LoadFunctionToMesh(const ScalarFunction& f, FEFunction& density) const;
     void LoadGaussianToMesh(double weight, double exponent, const coordinate& position, 
 			    double eps, FEFunction& density) const;
     void LoadScalar1DFunctionToMesh(FEFunction& density,  const Scalar1DFunctionClass& f, 
@@ -101,7 +106,8 @@ namespace dealii {
     double LaplaceElement(const size_t i, const size_t j) const;
     /* Solving PDE's */
     void SolvePoisson(const FEFunction& density, FEFunction& result);
-    void SolvePoisson(const PointFunction& density, PointFunction& result);
+    void SolvePoisson(const PointFunction& density, FEFunction& result);
+    void SolvePoisson(const PointFunction& density, PointFunction& result); 
 
     double Value (const FEFunction& f, const coordinate& x) const;
 
@@ -129,6 +135,7 @@ namespace dealii {
 
     void refine_grid(const cellVector& estimated_error_per_cell);
     void refine_grid(const Vector<float>& estimated_error_per_cell);
+    void refine_to_density(const ScalarFunction& density, const double dE);
     void refine_grid(const size_t n);
 
     /* Output -- perhaps move to a separate class.  */

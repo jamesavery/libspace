@@ -45,16 +45,16 @@ template <int dim, typename Q> class SuperPositionFunction: public Function<dim,
 
   SuperPositionFunction(){}
 
-  void add_function(const Function<dim,Q>& fun){
+  void add_function(const Function<dim,Q> const *fun){
     coefficients.push_back(1.0);
     centers.push_back(coordinate());
-    funs.push_back(&fun);
+    funs.push_back(fun);
   }
 
-  void add_function(const double coefficient, const coordinate& center, const Function<dim,Q>& fun){
+  void add_function(const double coefficient, const coordinate& center, const Function<dim,Q> const *fun){
     coefficients.push_back(coefficient);
     centers.push_back(center);
-    funs.push_back(&fun);
+    funs.push_back(fun);
   }
 
   Q operator()(const coordinate& x, const off_t component=0) const {
@@ -62,13 +62,17 @@ template <int dim, typename Q> class SuperPositionFunction: public Function<dim,
     double value = 0;
     for(size_t i=0;i<m;i++){
       const coordinate &center = centers[i];
-      value += coefficients[i]*funs[i](x - center);
+      value += coefficients[i]*(*funs[i])(x - center);
     }
     return value;
   }
+  
+  ~SuperPositionFunction(){
+    for(size_t i=0;i<funs.size();i++)
+      delete funs[i];
+    funs.resize(0);
+  }
 };
-
-SuperPositionFunction<3,double> mammam;
 
 /* MISSING: Normalization constant */
 template <int dim> class GaussianFunction : public Function<dim,double> {

@@ -13,8 +13,8 @@
     return *this; \
   }               \
                   \
-  SelfType& operator op (const SelfType& g) const { \
-    SelfType &f = *new SelfType(coefficients);      \
+  SelfType operator op (const SelfType& g) const { \
+    SelfType f(coefficients);      \
     typename ContainerClass::const_iterator cg = g.coefficients.begin();\
     for(typename ContainerClass::iterator c = f.coefficients.begin();c != f.coefficients.end(); c++,cg++) \
       { const Y &rhs = *cg; code; }					\
@@ -27,8 +27,8 @@
       code; \
     return *this; \
   } \
-  SelfType& operator op (const S& rhs) const { \
-    SelfType& f = *new SelfType(coefficients);\
+  SelfType operator op (const S& rhs) const { \
+    SelfType f(coefficients);\
     for(typename ContainerClass::iterator c = f.coefficients.begin();c != f.coefficients.end(); c++)\
       code;   \
     return f; \
