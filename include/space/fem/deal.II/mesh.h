@@ -150,10 +150,10 @@ namespace dealii {
 
     /* Functionality specific to Deal.II-meshes */
     FESpace(const std::string meshfile,uint_t fe_order = 1, uint_t gauss_order=2);
-    FESpace(const size_t npts[dim], const coordinate& leftcorner, const coordinate& dimensions, 
+    FESpace(const uint_t npts[dim], const coordinate& leftcorner, const coordinate& dimensions, 
 	    uint_t fe_order = 1, uint_t gauss_order=2); 
 
-    FESpace(const size_t npts[dim], const double cell[dim*dim],
+    FESpace(const uint_t npts[dim], const double cell[dim*dim],
 	    uint_t fe_order = 1, uint_t gauss_order=2);
 
     void absolute_error_estimate(const FEFunction& fe_function, const ScalarFunction& function, 

@@ -104,7 +104,7 @@ namespace dealii {
     cerr << " ]" << endl;
   }
 
-  fespace_member() FESpace(const size_t npts_[dim], const coordinate& leftcorner, 
+  fespace_member() FESpace(const uint_t npts_[dim], const coordinate& leftcorner, 
 			   const coordinate& dimensions, uint_t fe_order, uint_t gauss_order) :
   triangulation(Triangulation<dim>::maximum_smoothing),  
     quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
@@ -112,7 +112,7 @@ namespace dealii {
     fe_values(fe, quadrature_formula, update_values|update_JxW_values|update_quadrature_points|update_gradients)
     {
       PointWrap<FESpace> p1(leftcorner), p2(leftcorner+dimensions);
-      std::vector<size_t> npts(dim); for(size_t i=0;i<dim;i++) npts[i] = npts_[i];
+      std::vector<uint_t> npts(dim); for(size_t i=0;i<dim;i++) npts[i] = npts_[i];
 
       printf("fe_order    = %d\n"
 	     "gauss_order = %d\n", fe_order, gauss_order);
@@ -121,14 +121,14 @@ namespace dealii {
       update();  
     }
 
-  fespace_member() FESpace(const size_t npts[dim], const double cell[dim*dim],
+  fespace_member() FESpace(const uint_t npts[dim], const double cell[dim*dim],
 			   uint_t fe_order, uint_t gauss_order) 
   : triangulation(Triangulation<dim>::maximum_smoothing),
     quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
       quadrature_formula(gauss_order), 
     fe_values(fe, quadrature_formula, update_values|update_JxW_values|update_quadrature_points|update_gradients)
     {
-      vector<size_t> npts_(dim);
+      vector<uint_t> npts_(dim);
       Point<dim> p1, p2;
       for(size_t i=0;i<dim;i++){
 	p1(i) =   0;
