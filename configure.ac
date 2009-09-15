@@ -8,7 +8,7 @@
 
 define([svnversion], esyscmd([sh -c "date '+%y-%j'|tr -d '\n'"]))
 
-AC_INIT([The Space Discretization Library], [0.1.svnversion], [avery@diku.dk],[libspace])
+AC_INIT([The Space Discretization Library], [0.2.svnversion], [avery@diku.dk],[libspace])
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
 
 MAJORVERSION=0
