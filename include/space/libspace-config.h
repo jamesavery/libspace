@@ -166,7 +166,7 @@
 
 /* Define to the full name and version of this package. */
 #ifndef LIBSPACE_PACKAGE_STRING 
-#define LIBSPACE_PACKAGE_STRING  "The Space Discretization Library 0.1.09-237" 
+#define LIBSPACE_PACKAGE_STRING  "The Space Discretization Library 0.2.09-258" 
 #endif
 
 /* Define to the one symbol short name of this package. */
@@ -176,7 +176,7 @@
 
 /* Define to the version of this package. */
 #ifndef LIBSPACE_PACKAGE_VERSION 
-#define LIBSPACE_PACKAGE_VERSION  "0.1.09-237" 
+#define LIBSPACE_PACKAGE_VERSION  "0.2.09-258" 
 #endif
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -186,7 +186,7 @@
 
 /* SVN Revision */
 #ifndef LIBSPACE_SVN_REVISION 
-#define LIBSPACE_SVN_REVISION  "09-237" 
+#define LIBSPACE_SVN_REVISION  "09-258" 
 #endif
 
 /* A LAPACK (http://netlib.org) implementation exists and is used. */
@@ -196,7 +196,7 @@
 
 /* Version number of package */
 #ifndef LIBSPACE_VERSION 
-#define LIBSPACE_VERSION  "0.1.237" 
+#define LIBSPACE_VERSION  "0.2.258" 
 #endif
 
 /* Define to 1 if your processor stores words with the most significant byte
