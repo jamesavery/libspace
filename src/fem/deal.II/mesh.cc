@@ -249,7 +249,7 @@ namespace dealii {
 
       typename DoFHandler<dim>::active_cell_iterator cell = dof_handler.begin_active(), endc = dof_handler.end();   
     
-      vector<size_t> global_dof_indices (n_cell_dof);
+      vector<uint_t> global_dof_indices (n_cell_dof);
 
       for (size_t cellnum=0; cell!=endc; ++cell,++cellnum){
 	const WrapPoint<SelfType> x(cell->center());
