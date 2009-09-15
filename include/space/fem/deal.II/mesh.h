@@ -37,7 +37,9 @@ namespace dealii {
 
 
   template <int dim> class FESpace : public ::FESpace<dim,PointFunction_,FEFunction_,FEOperator_<dim> > {
-    typedef unsigned int uint_t;
+    typedef unsigned int   uint_t;
+    typedef unsigned short ushort_t;
+    typedef unsigned char  uchar_t;
   public:
     /* Test. */
     typedef dealii::SparseMatrix<double>    SparseMatrix;
@@ -147,12 +149,12 @@ namespace dealii {
     /* </messy> */
 
     /* Functionality specific to Deal.II-meshes */
-    FESpace(const std::string meshfile,size_t fe_order = 1, size_t gauss_order=2);
+    FESpace(const std::string meshfile,uint_t fe_order = 1, uint_t gauss_order=2);
     FESpace(const size_t npts[dim], const coordinate& leftcorner, const coordinate& dimensions, 
-	    size_t fe_order = 1, size_t gauss_order=2); 
+	    uint_t fe_order = 1, uint_t gauss_order=2); 
 
     FESpace(const size_t npts[dim], const double cell[dim*dim],
-	    size_t fe_order = 1, size_t gauss_order=2);
+	    uint_t fe_order = 1, uint_t gauss_order=2);
 
     void absolute_error_estimate(const FEFunction& fe_function, const ScalarFunction& function, 
 				 cellVector& error/*[n_active_cells()]*/) const;

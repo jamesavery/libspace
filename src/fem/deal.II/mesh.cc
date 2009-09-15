@@ -105,7 +105,7 @@ namespace dealii {
   }
 
   fespace_member() FESpace(const size_t npts_[dim], const coordinate& leftcorner, 
-			   const coordinate& dimensions, size_t fe_order, size_t gauss_order) :
+			   const coordinate& dimensions, uint_t fe_order, uint_t gauss_order) :
   triangulation(Triangulation<dim>::maximum_smoothing),  
     quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
       quadrature_formula(gauss_order), 
@@ -122,7 +122,7 @@ namespace dealii {
     }
 
   fespace_member() FESpace(const size_t npts[dim], const double cell[dim*dim],
-			   size_t fe_order, size_t gauss_order) 
+			   uint_t fe_order, uint_t gauss_order) 
   : triangulation(Triangulation<dim>::maximum_smoothing),
     quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
       quadrature_formula(gauss_order), 
