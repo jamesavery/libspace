@@ -1,1 +1,0 @@
-CXX=icpc CXXFLAGS="$ICPC_OPTFLAGS" ./configure --prefix=/usr/local/nanopar --with-compiler-type=intel
