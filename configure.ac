@@ -17,7 +17,7 @@ LTAGE=`date +%j | sed 's/^0*//'`
 
 LONGNAME="Space Discretization Library"
 SHORTNAME="libspace"
-WEBPAGE="http://libspace.kvante.org"
+WEBPAGE="http://github.com/jamesavery/libspace"
 VERSION=$MAJORVERSION.$MINORVERSION.$LTAGE
 RELEASESTATUS="release"
 ISODATE=`date +%Y-%m-%d`
