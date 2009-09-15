@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <space/storage/storage.h>
+#include <space/volumes.h>
 
 template <int dim, typename Q> class Function {
  public:
@@ -124,6 +125,51 @@ public:
   }
 };
 
+template <int dim> class VolumeFunction : public Function<dim,double> {
+ public:
+  double dfault;
+  typedef SmallVector<dim> coordinate;
+  std::vector<ConstantVolume<dim> > volumes;
+
+ VolumeFunction(){  }
+ VolumeFunction(const std::vector<ConstantVolume<dim> >& volumes, const double dfault=1.0) : volumes(volumes), dfault(dfault) {  }
+
+  double operator()(const coordinate& x, const off_t component=0) const {
+    int i = volume_number(x);
+    if(i>=0 /* && !volumes[i].fixed_potential*/){
+      return volumes[i].value;
+    } else 			/* Default is vacuum */
+      return dfault;
+  }
+
+  int volume_number(const coordinate& x) const {
+    for(size_t i=0;i<volumes.size();i++)
+      if(volumes[i].shape != NULL && volumes[i].shape->point_inside_volume(x)) return i;
+    return -1;
+  }
+
+  size_t closest_volume_number(const coordinate& x, double *distance_return = NULL) const {
+    int minnum = volume_number(x);
+    double mindist = INFINITY;
+    if(minnum>=0) mindist = 0.0;
+    else 
+      for(size_t i=0;i<volumes.size();i++){
+	const double dist = volumes[i].shape->approximate_distance(x);
+	if(dist < mindist){
+	  mindist = dist;
+	  minnum = i;
+	}
+      }
+    if(distance_return != NULL) *distance_return = mindist;
+    return minnum;
+  }
+
+  friend std::ostream& operator<<(std::ostream& S, const VolumeFunction& v){
+    S << "VolumeFunction with default value " << v.dfault << "." << endl;
+    for(size_t i=0;i<v.volumes.size();i++) S << "\t" << v.volumes[i]  << endl;
+    return S;
+  } 
+};
 
 
 #endif

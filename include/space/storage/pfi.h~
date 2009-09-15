@@ -1,0 +1,90 @@
+#ifndef LIBSPACE_PFI_H
+# define LIBSPACE_PFI_H
+
+class PFI {
+  typedef std::vector<double> ContainerClass;
+
+
+  static bool zero_streak_start(const ContainerClass& cs, const size_t i, const double eps=0){
+    return((i+2<cs.size()) && ::fabs(cs[i]) <= eps && ::fabs(cs[i+1]) <= eps && ::fabs(cs[i+2]) <= eps);
+  }
+  std::vector<double>  coefficients;
+
+public:
+  typedef Interval<unsigned int>  interval_t;
+  typedef std::list<interval_t> intervallist_t;
+
+  Intervals<unsigned int> intervals;
+  double eps;
+
+  double  operator[](const size_t i) const { return coefficients[i]; }
+  double& operator[](const size_t i) { return coefficients[i]; }
+
+  PFI(const double eps=0): eps(eps){}
+  PFI(const ContainerClass& cs, const double eps = 0) : coefficients(cs), eps(eps) 
+  {
+    update();
+  }
+
+  void update(){
+    bool zero_streak = true;
+    int a=-1;
+    for(size_t i=0;i<coefficients.size();i++){
+      if(zero_streak){
+	if(fabs(coefficients[i]) > eps){
+	  zero_streak = false;
+	  a = i;
+	}
+      } else if(zero_streak_start(coefficients,i,eps)){
+	zero_streak = true;
+	intervals.push_back(interval_t(a,i));
+	a = -1;
+      }
+    }
+    // Commit last half finished interval, if any
+    if(zero_streak==false) 
+      intervals.push_back(interval_t(a,coefficients.size()));
+  }
+
+  void set_coefficients(const ContainerClass& cs, double epsilon = 0){
+    eps = epsilon;
+    coefficients = cs;
+    update();
+  }
+
+  PFI& operator +=(const PFI& y){
+    coefficients.resize(y.coefficients.size());
+    intervals += y.intervals;
+    // y.interval <= this->interval
+    for(intervallist_t::const_iterator i=y.intervals.begin();i!=y.intervals.end();i++)
+      for(size_t j=i->a;j<i->b;j++) coefficients[j] += y.coefficients[j];
+
+    return *this;
+  }
+  PFI& operator *=(const PFI& y){
+    //    coefficients.resize(y.size()); // You'll never initialize by multiplying, since that will always give 0
+    intervals *= y.intervals;
+    // this->interval <= y.interval
+    for(intervallist_t::const_iterator i=intervals.begin();i!=intervals.end();i++)
+      for(size_t j=i->a;j<i->b;j++) coefficients[j] *= y.coefficients[j];
+
+    return *this;
+  }
+
+  PFI operator +(const PFI& y){
+    PFI z(*this);
+    return (z += y);
+  }
+
+  PFI operator *(const PFI& y){
+    PFI z(*this);
+    return (z *= y);
+  }
+
+  friend std::ostream& operator<<(std::ostream& s, const PFI& X){ 
+    s << "{Intervals: "<<X.intervals<<"}";
+    return s;
+  }
+};
+
+#endif

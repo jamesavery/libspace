@@ -9,7 +9,7 @@
   SelfType& operator op ## = (const SelfType& g) {                                 \
     typename ContainerClass::const_iterator cg = g.coefficients.begin();		\
     for(typename ContainerClass::iterator c = coefficients.begin();c != coefficients.end(); c++, cg++)\
-      { const Y &rhs = *cg; code; }					\
+      { const Y &rhs(*cg); code; }					\
     return *this; \
   }               \
                   \
@@ -17,7 +17,7 @@
     SelfType f(coefficients);      \
     typename ContainerClass::const_iterator cg = g.coefficients.begin();\
     for(typename ContainerClass::iterator c = f.coefficients.begin();c != f.coefficients.end(); c++,cg++) \
-      { const Y &rhs = *cg; code; }					\
+      { const Y &rhs(*cg); code; }					\
     return f; \
   }
 
@@ -61,6 +61,18 @@ template  <typename ContainerClass=std::vector<double>, typename Y = double, typ
  pointwise_operator(-, (*c) -= rhs,Y);
  pointwise_operator(*, (*c) *= rhs,S);
 
+ double Integrate(const ContainerClass& weights) const {
+   typename ContainerClass::const_iterator w(weights.begin()), c(coefficients.begin());
+   double sum = 0;
+   for(;c!=coefficients.end();c++,w++) sum += (*c)*(*w);
+   return sum;
+ }
+
+ SelfType& operator =(const S& rhs){ 
+   for(typename ContainerClass::iterator c = coefficients.begin();c != coefficients.end(); c++)
+     *c = rhs; 
+   return *this; 
+ }
 };
 
 
@@ -82,6 +94,13 @@ template  <typename ContainerClass=std::vector<double>, typename Y = double, typ
  pointwise_operator_vector(+, (*c) += rhs);
  pointwise_operator_vector(-, (*c) -= rhs);
  pointwise_operator_scalar(*, (*c) *= rhs,S);
+
+
+ SelfType& operator =(const S& rhs){ 
+   for(typename ContainerClass::iterator c = coefficients.begin();c != coefficients.end(); c++)
+     *c = rhs; 
+   return *this; 
+ }
 };
 
 

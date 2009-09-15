@@ -13,6 +13,9 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
   typedef FEFunction_ FEFunction;
   typedef FEOperator_ FEOperator;
 
+
+
+
   static const int dim = dim_;
 
   /* PointFunction-interface. TODO: Det er lidt rodet med PointFunction og FEFunction sammen. Split? */
@@ -52,8 +55,9 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
 
 
   /* Point-wise auxiliary data. */
-  std::vector<coordinate> point_positions;
-  PointFunction           point_weights;
+  std::vector<coordinate> point_positions;      /* Compact */
+  PointFunction           point_weights;        /* Compact   point-function */
+
   /* FE-wise auxiliary data. */
   FEFunction              fe_weights; 
 
@@ -61,6 +65,12 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
   virtual void write_mesh(const std::string& path) const = 0;
   virtual void write_function(const std::string& path, const FEFunction& f) const = 0;
   virtual void write_dof_sparsity(const string& path) const = 0;
+
+  /* Useful stuff for refinement */
+  class PointFunctional {
+  public:
+    virtual PointFunction& fill(const std::vector<coordinate>& positions) = 0;
+  };
 };
 
 #endif

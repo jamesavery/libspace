@@ -35,7 +35,7 @@ Integrate(const PointFunction& f,const PointFunction& V, const PointFunction& g)
   typename PointFunction::const_iterator cf = f.begin(), cg = g.begin(), 
                                          cV = V.begin(), end = f.end();
   typename PointFunction::const_iterator weight = point_weights.begin();
-  
+
   for(; cf != end; cf++,cg++,cV++,weight++) sum += (*cf)*(*cV)*(*cg)*(*weight);
   
   return sum;

@@ -12,6 +12,7 @@
 namespace dealii {
   template <int dim> class FESpace;
 
+  //typedef PFInterval PointFunction_; 
   typedef PointFunction_Simple<std::vector<double>,double,double>  PointFunction_; 
   typedef FEFunction_Simple<Vector<double>,double,double>  FEFunction_; 
 

@@ -2,9 +2,11 @@
 # define LIBDISC_DEALIIMESH_H
 
 #include <space/function.h>
+#include <space/volumes.h>
 #include <space/fem/fespace.h>
 #include <space/fem/deal.II/feoperator.h>
-
+#include <math.h>
+#include <string>
 /* deal.II */
 #include <grid/tria.h>
 #include <dofs/dof_handler.h>
@@ -60,6 +62,8 @@ namespace dealii {
     using BaseType::point_weights;
     using BaseType::point_positions;
 
+    typedef typename BaseType::PointFunctional PointFunctional;
+    typedef enum {DIRICHLET, NEUMANN,PERIODIC,MULTIPOLE} BoundaryType;
 
 
     double Integrate(const PointFunction& f) const { return BaseType::Integrate(f); }
@@ -111,8 +115,17 @@ namespace dealii {
 
     double Value (const FEFunction& f, const coordinate& x) const;
 
+    void set_boundary(unsigned char b_id, const BoundaryType b_type, const double b_value);
+    void set_fixed_region(unsigned char material_id, const double potential);
+    void set_dielectric_region(unsigned char material_id, const double value);
+
+    void set_fixed_regions(const std::vector<ConstantVolume<dim> >& regions);
+    void set_dielectric_regions(const std::vector<ConstantVolume<dim> >& regions);
+    
     /* <messy> */
-    void   ConstructPointFunction(const FEFunction& f, PointFunction& fp) const;
+    void ConstructPointFunction(const FEFunction& f, PointFunction& fp) const;
+    void ConstructFEFunction(const PointFunction& fp, FEFunction& f) const;
+    /* Point-wise point-management -- move to fespace.h/fespace_pointwise.cc */
 
     size_t       n_q_pts;	/**< Number of quadrature points per cell. */
     size_t       n_cells;	/**< Number of quadrature points per cell. */
@@ -120,12 +133,22 @@ namespace dealii {
     size_t       n_dofs;	/**< Total number of dofs. */
     size_t       quadrature_order;
 
+    std::map<size_t,double> dielectric_material, fixed_material; /* Fixed- and dielectric regions defined by material id  */
+    VolumeFunction<dim> dielectric_regions; /* Dielectric regions defined by spatial volumes*/
+    VolumeFunction<dim> fixed_regions;      /* Fixed regions defined by spatial volumes */
+
+    std::map<size_t,double> boundary_values; /* Interpolated Dirichlet boundary values */
+    std::map<size_t,double> fixed_dof;	     /* Fixed degrees of freedom -- "internal boundary condition"  */
+    std::vector<unsigned char> homogeneous_neumann_boundaries;
+    typename FunctionMap<dim>::type dirichlet_boundaries, neumann_boundaries;
+    Vector<double> neumann_rhs;
     //  VectorValues nodepositions;	/**< Spatial coordinates of each node. Is this necessary? */
     /* </messy> */
 
     /* Functionality specific to Deal.II-meshes */
+    FESpace(const std::string meshfile,size_t fe_order = 1, size_t gauss_order=2);
     FESpace(const size_t npts[dim], const coordinate& leftcorner, const coordinate& dimensions, 
-	    size_t fe_order = 1, size_t gauss_order=2);
+	    size_t fe_order = 1, size_t gauss_order=2); 
 
     FESpace(const size_t npts[dim], const double cell[dim*dim],
 	    size_t fe_order = 1, size_t gauss_order=2);
@@ -133,10 +156,16 @@ namespace dealii {
     void absolute_error_estimate(const FEFunction& fe_function, const ScalarFunction& function, 
 				 cellVector& error/*[n_active_cells()]*/) const;
 
-    void refine_grid(const cellVector& estimated_error_per_cell);
-    void refine_grid(const Vector<float>& estimated_error_per_cell);
-    void refine_to_density(const ScalarFunction& density, const double dE);
-    void refine_grid(const size_t n);
+    void increase_quadrature_order(const int n);
+    void refine_grid(const cellVector& estimated_error_per_cell,bool update_at_end=true);
+    void refine_grid(const Vector<float>& estimated_error_per_cell,bool update_at_end=true);
+    void refine_to_density(const ScalarFunction& density, const double dE,bool update_at_end=true);
+    void refine_to_density(PointFunctional& density, const double dE,bool update_at_end=true);
+    void refine_around_points(const std::vector<coordinate> xs, const double max_diameter=INFINITY, 
+			      const double near_diameter=0,const bool update_at_end=true);
+    void refine_around_regions(const VolumeFunction<dim>& V, const double max_diameter, 
+			       const bool update_at_end=true);
+    void refine_grid(const size_t n,bool update_at_end=true);
 
     /* Output -- perhaps move to a separate class.  */
     void write_mesh(const std::string& path) const;
@@ -148,6 +177,7 @@ namespace dealii {
     void update();
     void update_mass_matrix();
     void update_laplace_matrix();
+    void update_boundary_conditions();
     void update_hanging_nodes();
     ConstraintMatrix               hanging_node_constraints;
     SparsityPattern                sparsity_pattern;
@@ -161,12 +191,23 @@ namespace dealii {
     SparseMatrix system_matrix;
     SparseMatrix overlap_matrix;
     SparseMatrix laplace_matrix;
+  private:
+    void update_neumann_boundary(); /* Needs separate function because of special dim=1 case */
   };
 
   template <class FESpace> class PointWrap : public Point<FESpace::dim> {
   public:
     PointWrap(const typename FESpace::coordinate& x){
       for(size_t i=0;i<FESpace::dim;i++) (*this)[i] = x.x[i];
+    }
+  };
+
+  template <class FESpace> class WrapPoint : public FESpace::coordinate {
+  public:
+    using FESpace::coordinate::x;
+
+    WrapPoint(const typename dealii::Point<FESpace::dim>& X){
+      for(size_t i=0;i<FESpace::dim;i++) x[i] = X[i];
     }
   };
 

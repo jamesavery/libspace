@@ -1,0 +1,46 @@
+Dear all,
+
+I am doing calculations containing a number of metallic regions,
+modeled by fixed solutions to Poisson's equation. That is, a good
+number of internal DOFs should be fixed when solving Poisson's
+equation. However, I cannot simply exclude the regions from the mesh
+and use Dirichlet boundary conditions, since the cells are necessary
+for subsequent calculations, and mesh refinement should extend into
+the fixed regions.
+
+I have so far not been able to solve this problem in a satisfying way
+using deal.II. I have attempted the following schemes:
+
+ 1. Using Dirichlet boundary conditions using
+    VectorTools::interpolate_boundary_values. This causes Deal.II to
+    abort with an exception complaining that the fixed DOFs are not on
+    a boundary surface - which is obviously true, but is that
+    necessary?
+
+ 2. For each fixed degree of freedom i with value V_i, set the ith row
+    of the Laplace matrix to T_{ij} = \delta_{ij} and rhs_i = V_i.
+    This works, but destroys the symmetry of the Laplace matrix and
+    causes convergence to be very slow - in the examples I've tried, 
+    solving Poisson's equation is slowed down by a factor of 10-15
+    compared to CG on the symmetric matrix.
+
+ 3. My third idea was to use two meshes. I.e., I would build the full
+    mesh, doing all my refinement, but before solving Poisson's
+    equation, cut out the fixed regions and apply Dirichlet boundary
+    conditions to the surfaces of the "holes". After solving, embed
+    the solution back into the full mesh. 
+
+    The problem with this is that I cannot seem to find any mechanism
+    in Deal.II to remove or deactivate cells from an existing mesh. 
+
+After pulling my hair for some time over this, I've concluded that
+there really must be a better way of achieving this. After all, I'm
+almost certain that I'm not the only one who needs to do FEM
+calculations in which some of the internal DOFs are fixed. Needless to
+say, any help will be greatly appreciated!
+
+Thank you very much in advance.
+
+With kind regards,
+
+James Avery

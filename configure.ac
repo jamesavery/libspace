@@ -37,6 +37,12 @@ AX_PREFIX_CONFIG_H([./include/space/libspace-config.h])
 # ----- USER OPTIONS -----
 AC_PROG_CXX()
 
+AC_ARG_WITH(dimensions,
+	AC_HELP_STRING([--with-dimensions=(1|2|3)+],[List of space-dimensions for which to build. (default=1,2,3)]),
+	build_dimensions=$withval,
+	build_dimensions="123"
+)
+
 AC_ARG_WITH(compiler-type,
 	AC_HELP_STRING([--with-compiler-type={gnu|sun|intel|mipspro}],[Type of the C compiler $CC.]),
 	compiler_type=$withval
@@ -112,6 +118,10 @@ AC_CHECK_FUNCS([floor memset pow sqrt strchr strpbrk strspn strtol])
 
 
 # ----- PUTTING IT ALL TOGETHER ----
+AM_CONDITIONAL(BUILD_1D,[echo $build_dimensions | grep 1])
+AM_CONDITIONAL(BUILD_2D,[echo $build_dimensions | grep 2])
+AM_CONDITIONAL(BUILD_3D,[echo $build_dimensions | grep 3])
+
 if test x$compiler_type == x
 then
 	case $host_os

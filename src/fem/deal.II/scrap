@@ -52,3 +52,166 @@
 	   fe.dofs_per_cell);
 
   }
+
+
+    // First attempt to coarsen away useless initial cells
+    // Factor the next 30 lines out
+    bool done_coarsening = false;
+    positions.resize(n_cells*N_q);
+    Vector<double> density_dii(n_cells);
+    while(!done_coarsening){
+      size_t n_coarsened = 0;
+      done_coarsening = true;
+      size_t i;
+
+      for(cell = dof_handler.begin_active(),i=0;cell!=endc;cell++,i++) {
+	fe_points.reinit(cell);
+	qpoints = fe_points.get_quadrature_points();
+	for(size_t q=0;q<N_q;q++)
+	  for(size_t j=0;j<dim;j++) positions[i*N_q+q][j] = qpoints[q][j];
+      }
+      const PointFunction& density_pt(density.fill(positions));
+
+      for(cell = dof_handler.begin_active(),i=0;cell!=endc;cell++,i++) {
+	fe_values.reinit (cell);
+
+	double cell_density = 0;
+	for(size_t q=0;q<N_q;q++)
+	  cell_density += ::fabs(density_pt[i*N_q+q])*fe_values.JxW(q);
+	
+	density_dii[i] = cell_density;
+	if(cell_density <= pow(1.5,dim)*dE){
+	  n_coarsened++;
+	}
+      }
+      cerr << "Attempting to coarsen " << n_coarsened << " cells." << endl;
+      GridRefinement::refine_and_coarsen_fixed_number(triangulation,density_dii,0,(double)n_coarsened/(double)n_cells);
+      triangulation.execute_coarsening_and_refinement();
+    }
+
+
+  fespace_member(void) get_positions()
+  {
+    FEValues<dim> fe_values(fe, quadrature_formula, update_quadrature_points|update_values|update_JxW_values);
+
+    map<coordinate,size_t> position_seen;
+
+    global_point_weights.resize(n_cells*n_q_pts);
+
+    point_positions.resize (n_cells*n_q_pts); // Will be made smaller once filling is done.
+    point_weights.resize   (n_cells*n_q_pts);
+
+    decompactify_map.resize(n_cells*n_q_pts);
+
+    typename DoFHandler<dim>::active_cell_iterator
+      cell = dof_handler.begin_active(),
+      endc = dof_handler.end();
+    
+    size_t pt_global=0, pt_local=0;
+    for (; cell!=endc; ++cell){
+      fe_values.reinit (cell);
+      const vector< Point< dim > > &q_points = fe_values.get_quadrature_points();
+
+      for(size_t q=0;q<n_q_pts;++q,pt_global++){
+	double  w = 0;
+	WrapPoint<SelfType> x(q_points[q]);
+
+	for(size_t i=0;i<n_cell_dof;i++) w += fe_values.shape_value(i,q)*fe_values.JxW(q);
+
+	if(position_seen.find(x) == position_seen.end()){
+	  point_positions[pt_local] = x;
+	  point_weights  [pt_local] = w;
+	  position_seen  [x]        = pt_local;
+	  compactify_map.push_back(pt_global);
+	  fprintf(stderr,"New position %d:%d (%g,%g,%g)\n",pt_local,pt_global,x[0],x[1],x[2]);
+	  pt_local++;
+	} else {
+	  fprintf(stderr,"Old position %d:%d (%g,%g,%g)\n",position_seen[x],pt_global,x[0],x[1],x[2]);
+	  point_weights[position_seen[x]] += w;
+	}
+	global_point_weights[pt_global] = w;
+	
+	decompactify_map[pt_global] = position_seen[x];
+      }
+    }
+    point_positions.resize(compactify_map.size());
+    point_weights.resize(compactify_map.size());
+    fprintf(stderr,"Redundant size: %d; Compact size: %d.\n",decompactify_map.size(),compactify_map.size());
+  }
+
+
+  /* Point-wise point-management */
+  fespace_member(void) Compactify(const PointFunction& in, PointFunction& out) const
+  {
+    assert(out.size()>=point_weights.size());
+    for(size_t local=0;local<compactify_map.size();local++){
+      size_t global = compactify_map[local]; 
+      out[local] = in[global];	// Can be done in-place, since local <= global
+    }
+    out.resize(point_weights.size());
+  }
+
+  fespace_member(void) Decompactify(const PointFunction& in, PointFunction& out) const
+  {
+    out.resize(decompactify_map.size());
+    for(size_t global=0;global<decompactify_map.size();global++){
+      size_t local = decompactify_map[global];
+      out[global] = in[local];	// Cannot be done in-place
+    }    
+  }
+
+
+#################################
+#if 0
+    if(1){ // Might as well do it by hand, then.
+      laplace_matrix.reinit(sparsity_pattern);
+      FullMatrix<double>   cell_matrix (n_cell_dof, n_cell_dof);
+      vector<unsigned int> global_dof_indices (n_cell_dof);
+
+      typename DoFHandler<dim>::active_cell_iterator
+	cell = dof_handler.begin_active(),
+	endc = dof_handler.end();
+
+      size_t pt = 0;
+      for (size_t cellnum=0; cell!=endc; ++cell,++cellnum){
+#if 0
+	const map<size_t,double>::const_iterator material_it(material.find(cell->material_id()));
+	double material_constant = material_it==material.end()? 1.0 : material_it->second;
+#endif
+	
+	cell->get_dof_indices (global_dof_indices);
+	 
+	dielectric_regions.value_list(fe_values.get_quadrature_points(),material_values); 
+	//	if(material_constant>0){ // Normal cell
+	  fe_values.reinit (cell);
+
+	  cell_matrix = 0;
+	  if(!cell_matrix.all_zero()) abort();
+
+	  for(size_t q=0;q<n_q_pts;++q,++pt){
+	    double dV = fe_values.JxW(q)*material_values[q];
+	    for(size_t i=0;i<n_cell_dof;i++)
+	      for(size_t j=0;j<n_cell_dof;j++)
+		cell_matrix(i,j) += (fe_values.shape_grad(i,q)*fe_values.shape_grad(j,q))*dV;	      
+	  }
+
+	  for(size_t i=0;i<n_cell_dof;i++)
+	    for(size_t j=0;j<n_cell_dof;j++){
+	      size_t gi = global_dof_indices[i], gj = global_dof_indices[j];
+
+	      if(fixed_dof.find(gi) == fixed_dof.end()) // Mustn't add to rows of fixed dofs
+		laplace_matrix.add(gi,gj,cell_matrix(i,j));
+	    }
+
+	  //	}
+      }
+    }
+
+    // Deal with "internal boundary conditions", i.e. fixed DOFs that are not on a boundary.
+    if(0){
+      for(map<size_t,double>::const_iterator it=fixed_dof.begin();it!=fixed_dof.end();it++){
+	const size_t i = it->first;
+	laplace_matrix.set(i,i,1.0);
+      }
+    }
+#endif

@@ -32,6 +32,8 @@ class DiscreteFunction {
 
  virtual DF  operator * (const S& ) const = 0;
  virtual DF& operator *=(const S& ) = 0;
+ 
+ virtual DF& operator =(const S& s) = 0;
 
  /* XXX: No obvious way of doing multiplication without integration for dofs */
  // virtual DF& operator * (const DF& ) const = 0;
@@ -47,16 +49,26 @@ class DiscreteFunction {
  const_iterator end()   const { return coefficients.end();   }
  iterator begin()             { return coefficients.begin(); }
  iterator end()               { return coefficients.end();   }
- void resize(const size_t n)   { coefficients.resize(n);      } 
+ virtual void resize(const size_t n) { coefficients.resize(n); } 
  size_t size() const           { return coefficients.size();  }
 
  /* Random access interface to coefficients. Perhaps this isn't necessary. */
  Y& operator[](const size_t i)       { return coefficients[i]; }
  Y  operator[](const size_t i) const { return coefficients[i]; }
+
+ virtual void update(const double epsilon=0) { }
+
+ virtual size_t number_nonzero()   const { 
+   size_t nonzero = 0;
+   for(size_t i=0;i<coefficients.size();i++) if(fabs(coefficients[i])>0) ++nonzero;
+   return nonzero;
+ }
+ virtual size_t number_intervals() const { return 1; }
 };
 
 
 #include <space/storage/simple.h>
+#include <space/storage/pfinterval.h>
 
  
 

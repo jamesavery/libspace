@@ -108,8 +108,8 @@ template <int dim> void test_poisson(const options_t& options)
 {
   using namespace dealii;
 
-  const double upperleft_[3]  = {-.5,-.5,-.5};
-  const double dimensions_[3] = {10,10,10};
+  const double upperleft_[3]  = {-5.,-5.,-5.};
+  const double dimensions_[3] = {10.,10.,10.};
   const size_t npts[3] = {options.initial_refinement,options.initial_refinement,options.initial_refinement};
 
   typedef dealii::FESpace<dim> grid;
@@ -119,6 +119,8 @@ template <int dim> void test_poisson(const options_t& options)
   typename grid::coordinate dimensions(dimensions_);
 
   grid G(npts,upperleft,dimensions,options.fe_order,options.gauss_order);
+
+  G.set_boundary(0,grid::DIRICHLET,0.0);
 
   GaussianCharge<dim> gauss(1.0,1.0/2.0);
   GaussianPotential<dim> exact_solution(1.0,1.0/2.0);
@@ -148,8 +150,9 @@ template <int dim> void test_poisson(const options_t& options)
 
     if(options.write_mesh){ 	// XXX: write_mesh -> separat fra write_solution
       ostringstream path;
-      path << "poisson" << refinement_step << ".gpl";
-      G.write_function(path.str(), solution);
+      path << "poisson" << refinement_step;
+      G.write_function(path.str()+".gpl", solution);
+      G.write_mesh(path.str()+".msh");
     }
 
     if(refinement_step+1 < options.max_refinement_steps && fabs(relative_error)>options.error_cutoff){
@@ -170,8 +173,9 @@ template <int dim> void test_poisson(const options_t& options)
   }
     if(options.write_mesh){ 	// XXX: write_mesh -> separat fra write_solution
       ostringstream path;
-      path << "poisson-last.gpl";
-      G.write_function(path.str(), solution);
+      path << "poisson-last";
+      G.write_function(path.str()+".gpl", solution);
+      G.write_mesh(path.str()+".msh");
     }
 }
 

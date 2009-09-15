@@ -49,6 +49,18 @@ template <int dim, typename X = double, typename S = double> class SmallVector {
     return *this;
   }
 
+ bool operator<(const SmallVector& Y) const {
+   for(size_t i=0;i<dim;i++) {
+     if     (x[i] < Y.x[i]) return true;
+     else if(x[i] > Y.x[i]) return false;
+   }
+   return false;
+ }
+
+ bool operator==(const SmallVector& Y) const {
+   for(size_t i=0;i<dim;i++) if(x[i] != Y.x[i]) return false;
+   return true;
+ }
 
   SmallVector operator - (const SmallVector& y) const {
     SmallVector r(x);
@@ -98,13 +110,15 @@ template <int dim, typename X = double, typename S = double> class SmallVector {
     return sum;
   }
 
+  X norm() const { return sqrt(dot(*this)); }
+
  X operator[](const size_t i) const { return x[i]; }
  X& operator[](const size_t i) { return x[i]; }
 
  friend std::ostream& operator<<(std::ostream& F, const SmallVector& v){
     F << "[ ";
     for(size_t i=0;i<dim;i++) F << v.x[i] << " ";
-    F << "]\n";
+    F << "]";
 
     return F;
  } 
