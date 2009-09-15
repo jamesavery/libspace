@@ -12,7 +12,7 @@ AC_INIT([The Space Discretization Library], [0.2.svnversion], [avery@diku.dk],[l
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
 
 MAJORVERSION=0
-MINORVERSION=1
+MINORVERSION=2
 LTAGE=`date +%j | sed 's/^0*//'`
 
 LONGNAME="Space Discretization Library"
