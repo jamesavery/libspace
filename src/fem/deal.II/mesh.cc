@@ -34,9 +34,7 @@ int lookup_format(const string *supported_formats, const string& path);
 
 
 namespace dealii {
-  using namespace std;
-  
-  
+  using namespace std;  
 
   template <int dim> class scaletranslate {
     double scale[dim];
@@ -293,7 +291,7 @@ namespace dealii {
     // Merge Dirichlet BCs with fixed regions
     cerr << boundary_values.size() << " fixed dofs from Dirichlet BVC, " << fixed_dof.size()
 	 << " fixed dofs from set_fixed_regions()\n";
-    for(map<size_t,double>::const_iterator m=fixed_dof.begin();m!=fixed_dof.end();m++)
+    for(map<uint_t,double>::const_iterator m=fixed_dof.begin();m!=fixed_dof.end();m++)
       boundary_values[m->first] = m->second;
     
     // Apply all nonhomogeneous Von Neumann boundary conditions
@@ -386,7 +384,7 @@ namespace dealii {
     sparsity_pattern.compress();
     update_mass_matrix();
 #if 0    
-    for(map<size_t,double>::const_iterator i = material.begin();i!=material.end();i++){
+    for(map<uint_t,double>::const_iterator i = material.begin();i!=material.end();i++){
       const size_t material_id       = i->first;
       const double material_constant = i->second;
       if(material_constant <= 0) set_fixed_region(material_id,material_constant);

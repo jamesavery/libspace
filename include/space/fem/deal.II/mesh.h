@@ -37,6 +37,7 @@ namespace dealii {
 
 
   template <int dim> class FESpace : public ::FESpace<dim,PointFunction_,FEFunction_,FEOperator_<dim> > {
+    typedef unsigned int uint_t;
   public:
     /* Test. */
     typedef dealii::SparseMatrix<double>    SparseMatrix;
@@ -127,18 +128,18 @@ namespace dealii {
     void ConstructFEFunction(const PointFunction& fp, FEFunction& f) const;
     /* Point-wise point-management -- move to fespace.h/fespace_pointwise.cc */
 
-    size_t       n_q_pts;	/**< Number of quadrature points per cell. */
-    size_t       n_cells;	/**< Number of quadrature points per cell. */
-    size_t       n_cell_dof;	/**< Number of DOF per cell. */
-    size_t       n_dofs;	/**< Total number of dofs. */
-    size_t       quadrature_order;
+    uint_t       n_q_pts;	/**< Number of quadrature points per cell. */
+    uint_t       n_cells;	/**< Number of quadrature points per cell. */
+    uint_t       n_cell_dof;	/**< Number of DOF per cell. */
+    uint_t       n_dofs;	/**< Total number of dofs. */
+    uint_t       quadrature_order;
 
-    std::map<size_t,double> dielectric_material, fixed_material; /* Fixed- and dielectric regions defined by material id  */
+    std::map<uint_t,double> dielectric_material, fixed_material; /* Fixed- and dielectric regions defined by material id  */
     VolumeFunction<dim> dielectric_regions; /* Dielectric regions defined by spatial volumes*/
     VolumeFunction<dim> fixed_regions;      /* Fixed regions defined by spatial volumes */
 
-    std::map<size_t,double> boundary_values; /* Interpolated Dirichlet boundary values */
-    std::map<size_t,double> fixed_dof;	     /* Fixed degrees of freedom -- "internal boundary condition"  */
+    std::map<uint_t,double> boundary_values; /* Interpolated Dirichlet boundary values */
+    std::map<uint_t,double> fixed_dof;	     /* Fixed degrees of freedom -- "internal boundary condition"  */
     std::vector<unsigned char> homogeneous_neumann_boundaries;
     typename FunctionMap<dim>::type dirichlet_boundaries, neumann_boundaries;
     Vector<double> neumann_rhs;
