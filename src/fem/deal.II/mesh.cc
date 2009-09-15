@@ -83,7 +83,7 @@ namespace dealii {
 
 #define fespace_member(returntype) template <int dim> returntype FESpace<dim>::
 
-  fespace_member() FESpace(const string meshfile,size_t fe_order , size_t gauss_order):
+  fespace_member() FESpace(const string meshfile,uint_t fe_order , uint_t gauss_order):
   triangulation(Triangulation<dim>::maximum_smoothing),  
     quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
       quadrature_formula(gauss_order), 
