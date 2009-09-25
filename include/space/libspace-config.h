@@ -11,14 +11,10 @@
 #endif
 
 /* System has the Dolfin FEM library (http://fenics.org) */
-#ifndef LIBSPACE_HAS_DOLFIN 
-#define LIBSPACE_HAS_DOLFIN  1 
-#endif
+/* #undef HAS_DOLFIN */
 
 /* System has the libmesh FEM library (http://libmesh.sf.net) */
-#ifndef LIBSPACE_HAS_LIBMESH 
-#define LIBSPACE_HAS_LIBMESH  1 
-#endif
+/* #undef HAS_LIBMESH */
 
 /* System has netcdf */
 #ifndef LIBSPACE_HAS_NETCDF 
@@ -141,12 +137,6 @@
 /* Define to 1 if you have the `vprintf' function. */
 #ifndef LIBSPACE_HAVE_VPRINTF 
 #define LIBSPACE_HAVE_VPRINTF  1 
-#endif
-
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
-#ifndef LIBSPACE_LT_OBJDIR 
-#define LIBSPACE_LT_OBJDIR  ".libs/" 
 #endif
 
 /* Name of package */
