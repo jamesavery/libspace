@@ -78,11 +78,16 @@ double approximate_cell_distance(const CellAccessor<3>& c, const Point<3>& X)
   //   1. Define line l(t) = X+t(c.center()-X)
   //   For each face
   //       2.1. find intersection with l and plane defined by face.
-  //       2.2. if t\in[0;1] and c.point_inside(l(t-delta)) then:
-  //            2.2.1 p = |l(t)|^2 
-  //            2.2.2 if p<min_distance_sqr then set min_distance_sqr = p-  
+  //       2.2. if t\in[0;1] and c.point_inside(l(t+delta)) then:
+  //            2.2.1 p_sqr = |l(t)|^2 
+  //            2.2.2 if p_sqr<min_distance_sqr then set min_distance_sqr = p_sqr
   const double delta = 1e-6;
   const Line l(X,c.center());
+  for(size_t v=0;v<GeometryInfo<3>::vertices_per_cell;v++){
+    const double d = X.distance(c.vertex(v));
+    if(d*d < min_distance_sqr) min_distance_sqr = d*d;
+  }
+
   for(size_t f=0;f<GeometryInfo<3>::faces_per_cell;f++){
     const TriaAccessor<2,3,3>& face(*c.face(f));
     const Plane faceplane(face.vertex(0),face.vertex(1),face.vertex(2));
