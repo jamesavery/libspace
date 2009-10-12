@@ -521,7 +521,7 @@ namespace dealii {
 
 	X.vmult(V,U);
 	for(size_t i=0;i<n_cell_dof;i++)
-	  f[global_dof_indices[i]] += V[i]; // XXX: Hmm... skal de virkelig laegges sammen? Eller maaske averages?
+	  f[global_dof_indices[i]] = V[i]; // XXX: Hmm... skal de virkelig laegges sammen? Eller maaske averages?
       }
     }
   }
