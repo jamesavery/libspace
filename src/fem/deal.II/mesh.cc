@@ -16,8 +16,6 @@
 #  include <grid/tria_iterator.h>
 #  include <grid/tria_boundary_lib.h>
 
-#  include <iostream>
-#  include <fstream>
 #  include <grid/grid_out.h>
 #  include <numerics/data_out.h>
 #  include <lac/sparsity_pattern.h>
@@ -30,127 +28,10 @@
 #  include <lac/solver_selector.h>
 
 // Auxiliary stuff. Perhaps move to separate file.
-int lookup_format(const string *supported_formats, const string& path);
-
+#define fespace_member(returntype) template <int dim> returntype FESpace<dim>::
 
 namespace dealii {
   using namespace std;  
-
-  template <int dim> class scaletranslate {
-    double scale[dim];
-    double lowerleft[dim];
-  public:
-    scaletranslate(const double A[dim*dim]){
-      for(size_t i=0;i<dim;i++){
-	double min = INFINITY;
-	double norm2 = 0;
-	for(size_t j=0;j<dim;j++){
-	  norm2 += A[j*dim+i]*A[j*dim+i];
-	  if(A[j*dim+i]<min) min = A[j*dim+i];
-	}
-	scale[i] = sqrt(norm2);
-	lowerleft[i] = min;
-      }
-      cerr << "Scaling unit box by:       " << FESpace<dim>::coordinate(scale) << endl;
-      cerr << "Translating scaled box by: " << FESpace<dim>::coordinate(lowerleft) << endl;
-    }
-
-    Point<dim> operator () (const Point<dim>& x) const {
-      Point<dim> y;
-      for(size_t i=0;i<dim;i++) y(i) = x(i)*scale[i]+lowerleft[i];
-      return y;
-    }
-  };
-
-  template <int dim> class lineartransform {
-  public:
-    double A [dim*dim];
-    double lowerleft[dim];
-
-    lineartransform(const double A_[dim*dim]) { 
-      memcpy(A,A_,sizeof(A)); 
-    }
-    Point<dim> operator () (const Point<dim>& x) const {
-      Point<dim> y;
-      for(size_t i=0;i<dim;i++){
-	double yi = 0;
-	for(size_t j=0;j<dim;j++) yi += A[j*dim+i]*x(j);
-	y(i) = yi;
-      }
-      return y;
-    }
-  };
-
-#define fespace_member(returntype) template <int dim> returntype FESpace<dim>::
-
-  fespace_member() FESpace(const string meshfile,uint_t fe_order , uint_t gauss_order):
-  triangulation(Triangulation<dim>::maximum_smoothing),  
-    quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
-      quadrature_formula(gauss_order), 
-    fe_values(fe, quadrature_formula, update_values|update_JxW_values|update_quadrature_points|update_gradients)
- {
-    GridIn<dim> gridreader;
-    gridreader.attach_triangulation(triangulation);
-    ifstream input_file(meshfile.c_str());
-    gridreader.read_msh(input_file);
-
-    // TODO: Reorder DoFs to improve preconditioner performance.
-
-    update();
-    
-    cerr << "Original cells have material ids: [";
-    for(typename DoFHandler<dim>::active_cell_iterator cell = dof_handler.begin(); cell != dof_handler.end(); cell++)
-      fprintf(stderr," %d",cell->material_id());
-    cerr << " ]" << endl;
-  }
-
-  fespace_member() FESpace(const uint_t npts_[dim], const coordinate& leftcorner, 
-			   const coordinate& dimensions, uint_t fe_order, uint_t gauss_order) :
-  triangulation(Triangulation<dim>::maximum_smoothing),  
-    quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
-      quadrature_formula(gauss_order), 
-    fe_values(fe, quadrature_formula, update_values|update_JxW_values|update_quadrature_points|update_gradients)
-    {
-      PointWrap<FESpace> p1(leftcorner), p2(leftcorner+dimensions);
-      std::vector<uint_t> npts(dim); for(size_t i=0;i<dim;i++) npts[i] = npts_[i];
-
-      printf("fe_order    = %d\n"
-	     "gauss_order = %d\n", fe_order, gauss_order);
-
-      GridGenerator::subdivided_hyper_rectangle(triangulation, npts,p1,p2);
-      update();  
-    }
-
-  fespace_member() FESpace(const uint_t npts[dim], const double cell[dim*dim],
-			   uint_t fe_order, uint_t gauss_order) 
-  : triangulation(Triangulation<dim>::maximum_smoothing),
-    quadrature_order(gauss_order), fe(fe_order), dof_handler(triangulation), 
-      quadrature_formula(gauss_order), 
-    fe_values(fe, quadrature_formula, update_values|update_JxW_values|update_quadrature_points|update_gradients)
-    {
-      vector<uint_t> npts_(dim);
-      Point<dim> p1, p2;
-      for(size_t i=0;i<dim;i++){
-	p1(i) =   0;
-	p2(i) = 1.0;
-	npts_[i] = npts[i];
-      }
-
-      GridGenerator::subdivided_hyper_rectangle(triangulation, npts_, p1, p2);
-      cout << "Linear transform: " << endl;
-      for(size_t i=0;i<3;i++){
-	cout << '\t';
-	for(size_t j=0;j<3;j++)
-	  cout << cell[i*3+j] << " ";
-	cout << '\n';
-      }
-      // Unit cell has lower left corner (0,0,0) and cartesian coordinates with
-      // "unit" vectors given by cell[].
-      cout << "Mesh diameter before linear transform: " << GridTools::diameter(triangulation) << endl;
-      GridTools::transform(lineartransform<dim>(cell),triangulation);
-      cout << "Mesh diameter after linear transform: " << GridTools::diameter(triangulation) << endl;
-      update();
-    }
 
   fespace_member(void) update_hanging_nodes()
   {
@@ -998,102 +879,6 @@ namespace dealii {
     return VectorTools::point_value(dof_handler, f.coefficients, PointWrap<FESpace>(x));
   }
 
-  // Ouput stuff.
-  fespace_member(void) write_dof_sparsity(const string& path) const 
-  {
-    const string supported_formats_str[] = {"txt","gpl",""};
-    enum {TXT,GNUPLOT} supported_formats;
-
-    ofstream file(path.c_str());
-    
-    switch(lookup_format(supported_formats_str,path)) {
-    case TXT:
-      sparsity_pattern.print(file);
-      break;
-    default:
-      sparsity_pattern.print_gnuplot(file);
-    };
-
-    file.close();
-  }
-
-
-  // -7 171.95738
-  // -7 170.67851
-  // -7 165.12767
-
-  fespace_member(void) write_mesh(const string& path) const 
-  {
-    const string supported_formats_str[] = {"dx","msh","ucd","eps","xfig","gpl",""};
-    enum {DX,MSH,UCD,EPS,XFIG,GNUPLOT} supported_formats;
-
-    ofstream file(path.c_str());
-    GridOut out;
-
-    switch(lookup_format(supported_formats_str,path)) {
-    case DX:
-      out.write_dx(triangulation,file);
-      break;
-    case MSH:
-      // ... + indicators
-      out.write_msh(triangulation,file);
-      break;
-    case UCD:
-      out.write_ucd(triangulation,file);
-      break;
-    case EPS:
-      out.write_eps(triangulation,file);
-      break;
-    case XFIG:
-      out.write_xfig(triangulation,file);
-      break;
-    case GNUPLOT:
-    default:
-      out.write_gnuplot(triangulation,file);
-    };
-
-    file.close();
-  }
-
-
-
-
-  fespace_member(void) write_function(const string& path, const FEFunction& f) const
-  {
-    const string supported_formats_str[] = {"dx","eps","gmv","pov","plt","pltx","ucd","vtk","dealII","gpl",""};
-    enum {DX,EPS,GMV,POVRAY,TECPLOT,TECPLOT_BINARY,UCD,VTK,DEALII,GNUPLOT} supported_formats;
-
-    ofstream file(path.c_str());
-    DataOut<dim> out;
-
-    out.attach_dof_handler (dof_handler);
-    out.add_data_vector (f.coefficients, "f");
-    out.build_patches ();
-   
-    switch(lookup_format(supported_formats_str,path)) {
-    case DX:               out.write_dx(file);       break;
-    case EPS:              {
-      DataOutBase::EpsFlags eps_flags;
-      eps_flags.z_scaling = 4;
-
-      out.set_flags (eps_flags);
-      out.write_eps(file);  
-    }
-      break;
-    case GMV:              out.write_gmv(file);      break;
-    case POVRAY:           out.write_povray(file);   break;
-    case TECPLOT:          out.write_tecplot(file); break;
-    case TECPLOT_BINARY:   out.write_tecplot_binary(file); break;
-    case UCD:              out.write_ucd(file);      break;
-    case VTK:              out.write_vtk(file);      break;
-    case DEALII:           out.write_deal_II_intermediate(file);  break;
-    case GNUPLOT:
-    default:
-      out.write_gnuplot(file);
-    };
-
-    file.close();  
-  }
 
 }
 #undef fespace_member
