@@ -67,9 +67,13 @@ AC_ARG_ENABLE(lapack,
 )
 
 PKG_CHECK_MODULES(NETCDF,      [netcdf >= 3],
-			       [AC_DEFINE(HAS_NETCDF,1,[System has netcdf]) REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf"],[AC_MSG_WARN([No netcdf])])
+			       [AC_DEFINE(HAS_NETCDF,1,[System has netcdf]) 
+			       REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf"],[AC_MSG_WARN([No netcdf])])
+
 PKG_CHECK_MODULES(NETCDF_CXX,  [netcdf-c++ >= 3],
-			       [AC_DEFINE(HAS_NETCDF_CXX,1,[System has netcdf-c++]) REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf-c++"],[AC_MSG_WARN([No netcdf-c++])])
+			       [AC_DEFINE(HAS_NETCDF_CXX,1,[System has netcdf-c++]) 
+			       REQUIRED_PACKAGES="$REQUIRED_PACKAGES netcdf-c++"],[AC_MSG_WARN([No netcdf-c++])])
+
 PKG_CHECK_MODULES(LIBMESH,  libmesh,
 			       [AC_DEFINE(HAS_LIBMESH,1,[System has the libmesh FEM library (http://libmesh.sf.net)])
 			        REQUIRED_PACKAGES="$REQUIRED_PACKAGES libmesh"],[AC_MSG_WARN([No libmesh])])
