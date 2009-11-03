@@ -64,7 +64,7 @@ instances/3D-grid.cc instances/3D-fespace.cc instances/3D-fespace-dii.cc
 
 libspace_la_SOURCES = \
 misc.cc grid/regulargrid.cc fem/fespace_pointwise.cc \
-fem/deal.II/mesh.cc fem/deal.II/geometry_funs.cc \
+fem/deal.II/mesh.cc fem/deal.II/mesh-init.cc fem/deal.II/mesh-output.cc fem/deal.II/geometry_funs.cc \
 $(instances1D) $(instances2D) $(instances3D) \
 $(INCLUDE) $(INCLUDE_GRID) $(INCLUDE_STORAGE) $(INCLUDE_FEM)\
 $(INCLUDE_FEM_DEALII) $(INCLUDE_FEM_LIBMESH) 
