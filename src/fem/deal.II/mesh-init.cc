@@ -55,7 +55,12 @@ namespace dealii {
     GridIn<dim> gridreader;
     gridreader.attach_triangulation(triangulation);
     ifstream input_file(meshfile.c_str());
-    gridreader.read_msh(input_file);
+    try {
+      gridreader.read_msh(input_file);
+    } catch(dealii::ExceptionBase e){
+      e.print_info(cerr);
+      e.print_stack_trace(cerr);
+    }
 
     // TODO: Reorder DoFs to improve preconditioner performance.
 
