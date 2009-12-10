@@ -58,8 +58,13 @@ namespace dealii {
     try {
       gridreader.read_msh(input_file);
     } catch(dealii::ExceptionBase e){
+      cerr << "Exception data:\n";
+      e.print_exc_data(cerr);
+      cerr << "Exception info:\n";
       e.print_info(cerr);
+      cerr << "Stack trace:\n";
       e.print_stack_trace(cerr);
+      abort();
     }
 
     // TODO: Reorder DoFs to improve preconditioner performance.
