@@ -112,9 +112,9 @@ namespace dealii {
 
     double LaplaceElement(const size_t i, const size_t j) const;
     /* Solving PDE's */
-    void SolvePoisson(const FEFunction& density, FEFunction& result);
-    void SolvePoisson(const PointFunction& density, FEFunction& result);
-    void SolvePoisson(const PointFunction& density, PointFunction& result); 
+    void SolvePoisson(const FEFunction& density, FEFunction& result) const;
+    void SolvePoisson(const PointFunction& density, FEFunction& result) const;
+    void SolvePoisson(const PointFunction& density, PointFunction& result) const; 
 
     double Value (const FEFunction& f, const coordinate& x) const;
 

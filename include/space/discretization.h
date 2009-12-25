@@ -31,7 +31,7 @@ template <int dim, class PF = PointFunction_Simple<>, class PO = PF >
 
   virtual double LaplaceElement(const size_t i, const size_t j) const = 0;
   /* Solving PDE's */
-  virtual void SolvePoisson(const PF& density, PF& vHartree) = 0;
+  virtual void SolvePoisson(const PF& density, PF& vHartree) const = 0;
 
  private:
 };

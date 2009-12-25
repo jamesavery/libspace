@@ -86,6 +86,7 @@ namespace dealii {
 
   fespace_member(void) set_fixed_region(unsigned char material_id, const double potential = 0)
   {
+    cerr << "Fixing material " << int(material_id) << " to value " << potential << endl;
     fixed_material[material_id] = potential;
   }
 
@@ -105,7 +106,7 @@ namespace dealii {
 
     vector<double> material_values(n_q_pts);
     // and Laplacian matrix  \f$m_{ij} = \int_\Omega \nabla\phi_i(x)\cdot \nabla\phi_j(x) dx\f$
-    printf("Building Laplace matrix.\n"); // Slow; Should only generate laplace_matrix when asked; 
+    cerr << "Building Laplace matrix.\n"; // Slow; Should only generate laplace_matrix when asked; 
 				          // Perhaps have a PreparePoisson (Also builds preconditioner?)
     laplace_matrix.reinit(sparsity_pattern);
 
@@ -139,6 +140,8 @@ namespace dealii {
 
 	if(vol_dist < cell->diameter()){  
 	  // Cell is likely to intersect with a fixed region -- fix the whole bloody cell, man!
+	  cerr << "HIGHLY DEPRECATED: Fixed region by volume. "
+	           "Don't do this unless you know what you're doing!\n";
 	  const double value = fixed_regions.volumes[vol_idx].value; 
 
 	  cell->get_dof_indices (global_dof_indices);
@@ -149,10 +152,12 @@ namespace dealii {
 	} else if(fixed_material.find(cell->material_id()) != fixed_material.end()){
 	  const double value = fixed_material[cell->material_id()];
 
+	  cerr << "Material " << int(cell->material_id()) << " fixed to " << value << endl;
+
 	  cell->get_dof_indices (global_dof_indices);
 	  
 	  for(size_t i=0;i<n_cell_dof;i++)
-	    fixed_dof[global_dof_indices[i]] = value;	  
+	    fixed_dof[global_dof_indices[i]] = value; 	  
 	}
       }
     }
@@ -174,7 +179,7 @@ namespace dealii {
 	 << " fixed dofs from set_fixed_regions()\n";
     for(map<uint_t,double>::const_iterator m=fixed_dof.begin();m!=fixed_dof.end();m++)
       boundary_values[m->first] = m->second;
-    
+
     // Apply all nonhomogeneous Von Neumann boundary conditions
     if(!neumann_boundaries.empty()){
       cerr << "Houston: We have a non-homogeneous Neumann boundary condition!" << endl;
@@ -456,8 +461,12 @@ namespace dealii {
   }
 
   fespace_member(void)
-  SolvePoisson(const FEFunction& density, FEFunction& result) 
+  SolvePoisson(const FEFunction& density, FEFunction& result) const
   {
+    SparseMatrix lhsmatrix;	// TODO: Find ud af, hvad der er galt, i stedet for det her heis.
+    lhsmatrix.reinit(laplace_matrix.get_sparsity_pattern());
+    lhsmatrix.copy_from(laplace_matrix);
+
     result.resize(dof_handler.n_dofs());
 
     dofVector rhs(n_dofs);
@@ -471,7 +480,7 @@ namespace dealii {
     hanging_node_constraints.condense(rhs);
 
     MatrixTools::apply_boundary_values (boundary_values,
-					laplace_matrix,
+					lhsmatrix,
 					result.coefficients,
 					rhs);
 
@@ -480,8 +489,8 @@ namespace dealii {
     SolverCG<>    cg (solver_control);
     
     PreconditionSSOR<> prec;
-    prec.initialize(laplace_matrix); // magic parameter -- investigate
-    cg.solve (laplace_matrix, result.coefficients, rhs, prec);
+    prec.initialize(lhsmatrix); // magic parameter -- investigate
+    cg.solve (lhsmatrix, result.coefficients, rhs, prec);
 
 
     //    printf("\\int u = %g\n",Integrate(result)); 
@@ -491,8 +500,12 @@ namespace dealii {
   }
 
   fespace_member(void)
-  SolvePoisson(const PointFunction& density, FEFunction& result) 
+  SolvePoisson(const PointFunction& density, FEFunction& result) const
   {
+    SparseMatrix lhsmatrix;
+    lhsmatrix.reinit(laplace_matrix.get_sparsity_pattern());
+    lhsmatrix.copy_from(laplace_matrix);
+
     FEValues<dim> fe_values(fe, quadrature_formula, update_values | update_JxW_values);
 
     result.resize(dof_handler.n_dofs());
@@ -527,8 +540,13 @@ namespace dealii {
 
     hanging_node_constraints.condense(rhs);
 
+//     cerr << "Fixed dofs:\n";
+//     for(map<uint_t,double>::const_iterator m=boundary_values.begin();
+// 	m!=boundary_values.end();m++){
+//       cerr << m->first << " -> " << m->second << endl;
+//     }
     MatrixTools::apply_boundary_values (boundary_values,
-					laplace_matrix,
+					lhsmatrix,
 					result.coefficients,
 					rhs);
 
@@ -537,14 +555,14 @@ namespace dealii {
     SolverCG<>    solver (solver_control);
       
     PreconditionSSOR<> prec;
-    prec.initialize(laplace_matrix);
-    solver.solve (laplace_matrix, result.coefficients, rhs, prec);
+    prec.initialize(lhsmatrix);
+    solver.solve (lhsmatrix, result.coefficients, rhs, prec);
 
     hanging_node_constraints.distribute (result.coefficients); // distribute solution
   }
 
   fespace_member(void)
-  SolvePoisson(const PointFunction& density, PointFunction& result) {
+  SolvePoisson(const PointFunction& density, PointFunction& result) const {
     FEFunction result_fe;
     SolvePoisson(density,result_fe);
     ConstructPointFunction(result_fe,result);
