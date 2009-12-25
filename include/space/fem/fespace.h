@@ -34,7 +34,7 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
   double Integrate(const PointFunction& f, const PointFunction& g) const;
   double Integrate(const PointFunction& f, const PointFunction& V, const PointFunction& g) const;
   /* Solving PDE's. Library-dependent. */
-  virtual void SolvePoisson(const PointFunction& density, PointFunction& vHartree) = 0;
+  virtual void SolvePoisson(const PointFunction& density, PointFunction& vHartree) const = 0;
 
 
   /* FEFunction-interface. Library-dependent. */
@@ -51,7 +51,7 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
   virtual double Integrate(const FEFunction& f, const FEOperator& V, const FEFunction& g) const = 0;
 
   virtual double LaplaceElement(const size_t i, const size_t j) const = 0;
-  virtual void SolvePoisson(const FEFunction& density,    FEFunction& vHartree) = 0;
+  virtual void SolvePoisson(const FEFunction& density,    FEFunction& vHartree) const = 0;
 
 
   /* Point-wise auxiliary data. */

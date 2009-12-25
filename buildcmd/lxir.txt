@@ -1,1 +1,1 @@
-CC=icc CXX=icpc CFLAGS="-O3 -xHOST" CXXFLAGS="-O3 -xHOST" ./configure --prefix=${HOME}/work --with-compiler-type=intel --with-dimensions=3 --with-lapack-ldflags="-L${MKLROOT}/lib/em64t -Wl,--start-group -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lguide -lpthread -llapack  -Wl,--end-group"
+CC=icc CXX=icpc CFLAGS="-O3 -xHOST" CXXFLAGS="-O3 -xHOST" ./configure --prefix=${HOME}/work --with-compiler-type=intel --with-dimensions=3 --with-lapack-ldflags="-L${MKLROOT}/lib/em64t ${MKLLAPACK}"
