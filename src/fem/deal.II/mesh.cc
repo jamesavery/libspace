@@ -84,10 +84,10 @@ namespace dealii {
     dielectric_material[material_id] = value;
   }
 
-  fespace_member(void) set_fixed_region(unsigned char material_id, const double potential = 0)
+  fespace_member(void) set_fixed_region(unsigned char material_id, const double value = 0)
   {
-    cerr << "Fixing material " << int(material_id) << " to value " << potential << endl;
-    fixed_material[material_id] = potential;
+    cerr << "Fixing material " << int(material_id) << " to value " << value << endl;
+    fixed_material[material_id] = value;
   }
 
   fespace_member(void) set_fixed_regions(const vector<ConstantVolume<dim> >& regions)
@@ -124,7 +124,7 @@ namespace dealii {
   fespace_member(void) update_boundary_conditions()
   {
     boundary_values.clear();
-    fixed_dof.clear();		// XXX: If material_id is reintroduced, this must be dealt with.
+    fixed_dof.clear();		
 
     // Set fixed regions
     {
@@ -152,7 +152,8 @@ namespace dealii {
 	} else if(fixed_material.find(cell->material_id()) != fixed_material.end()){
 	  const double value = fixed_material[cell->material_id()];
 
-	  cerr << "Material " << int(cell->material_id()) << " fixed to " << value << endl;
+// 	  cerr << "Cell " << cellnum << " has material " << int(cell->material_id())
+// 	       << ", fixed to " << value << endl;
 
 	  cell->get_dof_indices (global_dof_indices);
 	  
@@ -169,10 +170,11 @@ namespace dealii {
 
     // Apply all Dirichlet boundary conditions
     if(!dirichlet_boundaries.empty()){
+      VectorTools::interpolate_boundary_values(MappingQ1<dim>(),dof_handler,
+					       dirichlet_boundaries,boundary_values);
       cerr << "Dirichlet boundaries: "<<endl;
       for(typename FunctionMap<dim>::type::const_iterator i=dirichlet_boundaries.begin(); i!=dirichlet_boundaries.end();i++)
-	cerr << "\t" << static_cast<int>(i->first) << endl;
-      VectorTools::interpolate_boundary_values (MappingQ1<dim>(),dof_handler,dirichlet_boundaries,boundary_values);
+	cerr << "\t" << int(i->first) << endl;
     }
     // Merge Dirichlet BCs with fixed regions
     cerr << boundary_values.size() << " fixed dofs from Dirichlet BVC, " << fixed_dof.size()
@@ -463,7 +465,7 @@ namespace dealii {
   fespace_member(void)
   SolvePoisson(const FEFunction& density, FEFunction& result) const
   {
-    SparseMatrix lhsmatrix;	// TODO: Find ud af, hvad der er galt, i stedet for det her heis.
+    SparseMatrix lhsmatrix;	// TODO: Figure out how to apply BVCs to laplace_matrix and rhs seperately.
     lhsmatrix.reinit(laplace_matrix.get_sparsity_pattern());
     lhsmatrix.copy_from(laplace_matrix);
 
@@ -484,12 +486,17 @@ namespace dealii {
 					result.coefficients,
 					rhs);
 
+    cerr << "Fixed DoFs: {";
+    for(map<uint_t,double>::const_iterator m=boundary_values.begin();m!=boundary_values.end();m++)
+      cerr << "{"<<m->first << ","<<m->second<<"}, ";
+    cerr << "Null};" << endl;
+
     // SOLVE
     SolverControl solver_control (1000/*max iterations - should depend on problem size?*/, 1e-12/*tolerance*/);
     SolverCG<>    cg (solver_control);
     
     PreconditionSSOR<> prec;
-    prec.initialize(lhsmatrix); // magic parameter -- investigate
+    prec.initialize(lhsmatrix);
     cg.solve (lhsmatrix, result.coefficients, rhs, prec);
 
 
