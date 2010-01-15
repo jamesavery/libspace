@@ -58,13 +58,14 @@ namespace dealii {
     gridreader.read_msh(input_file);
 
     // TODO: Reorder DoFs to improve preconditioner performance.
-
+    prec = new PreconditionSSOR<>();
     update();
     
-    cerr << "Original cells have material ids: [";
-    for(typename DoFHandler<dim>::active_cell_iterator cell = dof_handler.begin(); cell != dof_handler.end(); cell++)
-      fprintf(stderr," %d",cell->material_id());
-    cerr << " ]" << endl;
+    // NB: Material ID still is not written to GMSH output!!
+//     cerr << "Original cells have material ids: [";
+//     for(typename DoFHandler<dim>::active_cell_iterator cell = dof_handler.begin(); cell != dof_handler.end(); cell++)
+//       fprintf(stderr," %d",cell->material_id());
+//     cerr << " ]" << endl;
   }
 
 /// Construct a rectangular FESpace mesh 
