@@ -164,6 +164,7 @@ namespace dealii {
     void refine_grid(const Vector<float>& estimated_error_per_cell,bool update_at_end=true);
     void refine_to_density(const ScalarFunction& density, const double dE,bool update_at_end=true);
     void refine_to_density(PointFunctional& density, const double dE,bool update_at_end=true);
+    void refine_max_cell_size(const double max_diameter, const bool update_at_end=true);
     void refine_around_points(const std::vector<coordinate> xs, const double max_diameter=INFINITY, 
 			      const double near_diameter=0,const bool update_at_end=true);
     void refine_around_regions(const VolumeFunction<dim>& V, const double max_diameter, 
@@ -172,7 +173,8 @@ namespace dealii {
 
     /* Output -- perhaps move to a separate class.  */
     void write_mesh(const std::string& path) const;
-    void write_function(const std::string& path, const FEFunction& f) const;
+    void write_function(const std::string& path, const FEFunction& f, 
+			const std::string name = std::string("f")) const;
     void write_dof_sparsity(const string& path) const;
 
     /* Internal stuff. */
@@ -194,6 +196,8 @@ namespace dealii {
     SparseMatrix system_matrix;
     SparseMatrix overlap_matrix;
     SparseMatrix laplace_matrix;
+
+    PreconditionSSOR<> *prec;
   private:
     void update_neumann_boundary(); /* Needs separate function because of special dim=1 case */
   };
