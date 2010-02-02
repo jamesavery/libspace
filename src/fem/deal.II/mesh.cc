@@ -64,7 +64,7 @@ namespace dealii {
       break;
     case NEUMANN: 
       if(b_value == 0.0)
-	homogeneous_neumann_boundaries.push_back(b_id);
+	homogeneous_neumann_boundaries.insert(b_id);
       else 
 	neumann_boundaries[b_id] = new dealii::ConstantFunction<dim>(b_value); // XXX: Memory leak
 
@@ -116,7 +116,6 @@ namespace dealii {
       // What to do when we have it as a function of cell->material_id()?
       ScalarFunctionWrap material_fun(dielectric_regions);
       MatrixTools::create_laplace_matrix(dof_handler,quadrature_formula,laplace_matrix,&material_fun);
-      laplace_matrix *= 1.0/(4*M_PI);
     } else {
        FEValues<dim> fe_values(fe, quadrature_formula, 
 			       update_values | update_gradients | update_JxW_values);
@@ -206,8 +205,9 @@ namespace dealii {
 
     // Homogeneous von Neumann boundary condition is a noop -- hom. von Neumann is default behaviour
     cerr << "Homogeneous von Neumann boundaries: "<<endl;
-    for(size_t i=0;i<homogeneous_neumann_boundaries.size();i++)
-      cerr << "\t" << static_cast<int>(homogeneous_neumann_boundaries[i]) << endl;
+    for(set<unsigned char>::const_iterator b=homogeneous_neumann_boundaries.begin();
+	b != homogeneous_neumann_boundaries.end(); b++)
+      cerr << "\t" << static_cast<int>(*b) << endl;
 
     // Apply all Dirichlet boundary conditions
     if(!dirichlet_boundaries.empty()){
