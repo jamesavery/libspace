@@ -13,6 +13,7 @@
 #include <grid/grid_generator.h>
 #include <grid/tria_accessor.h>
 #include <grid/tria_iterator.h>
+#include <grid/persistent_tria.h>
 #include <dofs/dof_accessor.h>
 #include <fe/fe_q.h>
 #include <dofs/dof_tools.h>
@@ -142,19 +143,19 @@ namespace dealii {
 
     std::map<uint_t,double> boundary_values; /* Interpolated Dirichlet boundary values */
     std::map<uint_t,double> fixed_dof;	     /* Fixed degrees of freedom -- "internal boundary condition"  */
-    std::vector<unsigned char> homogeneous_neumann_boundaries;
+    std::set<unsigned char> homogeneous_neumann_boundaries;
     typename FunctionMap<dim>::type dirichlet_boundaries, neumann_boundaries;
     Vector<double> neumann_rhs;
     //  VectorValues nodepositions;	/**< Spatial coordinates of each node. Is this necessary? */
     /* </messy> */
 
     /* Functionality specific to Deal.II-meshes */
-    FESpace(const std::string meshfile,uint_t fe_order = 1, uint_t gauss_order=2);
+    FESpace(const std::string meshfile,uint_t fe_order = 1, uint_t gauss_order=2, const string restartfile = "");
     FESpace(const uint_t npts[dim], const coordinate& leftcorner, const coordinate& dimensions, 
-	    uint_t fe_order = 1, uint_t gauss_order=2,bool colorize=false); 
+	    uint_t fe_order = 1, uint_t gauss_order=2,bool colorize=false, const string restartfile = ""); 
 
     FESpace(const uint_t npts[dim], const double cell[dim*dim],
-	    uint_t fe_order = 1, uint_t gauss_order=2,bool colorize=false);
+	    uint_t fe_order = 1, uint_t gauss_order=2,bool colorize=false, const string restartfile = "");
 
     void absolute_error_estimate(const FEFunction& fe_function, const ScalarFunction& function, 
 				 cellVector& error/*[n_active_cells()]*/) const;
@@ -186,7 +187,8 @@ namespace dealii {
     void update_hanging_nodes();
     ConstraintMatrix               hanging_node_constraints;
     SparsityPattern                sparsity_pattern;
-    Triangulation<dim>     triangulation;
+    Triangulation<dim>             coarse_grid;
+    PersistentTriangulation<dim>   triangulation;
     FE_Q<dim>              fe;
     DoFHandler<dim>        dof_handler;
 

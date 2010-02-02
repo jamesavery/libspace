@@ -42,13 +42,20 @@ namespace dealii{
 
   fespace_member(void) write_mesh(const string& path) const 
   {
-    const string supported_formats_str[] = {"dx","msh","ucd","eps","xfig","gpl",""};
-    enum {DX,MSH,UCD,EPS,XFIG,GNUPLOT} supported_formats;
+    const string supported_formats_str[] = {"flags","dx","msh","ucd","eps","xfig","gpl",""};
+    enum {INTERNAL,DX,MSH,UCD,EPS,XFIG,GNUPLOT} supported_formats;
 
     ofstream file(path.c_str());
     GridOut out;
 
     switch(lookup_format(supported_formats_str,path)) {
+    case INTERNAL:
+      {
+	ofstream f(path.c_str());
+	triangulation.write_flags(f);
+	f.close();
+      }
+      break;
     case DX:
       out.write_dx(triangulation,file);
       break;
