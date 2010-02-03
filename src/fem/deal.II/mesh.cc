@@ -64,7 +64,7 @@ namespace dealii {
       break;
     case NEUMANN: 
       if(b_value == 0.0)
-	homogeneous_neumann_boundaries.push_back(b_id);
+	homogeneous_neumann_boundaries.insert(b_id);
       else 
 	neumann_boundaries[b_id] = new dealii::ConstantFunction<dim>(b_value); // XXX: Memory leak
 
@@ -110,12 +110,52 @@ namespace dealii {
 				          // Perhaps have a PreparePoisson (Also builds preconditioner?)
     laplace_matrix.reinit(sparsity_pattern);
 
-    // TODO: 
-    // create_laplace_matrix needs material constant to be a function of space; 
-    // What to do when we have it as a function of cell->material_id()?
-    {
+    if(0){
+      // TODO: 
+      // create_laplace_matrix needs material constant to be a function of space; 
+      // What to do when we have it as a function of cell->material_id()?
       ScalarFunctionWrap material_fun(dielectric_regions);
       MatrixTools::create_laplace_matrix(dof_handler,quadrature_formula,laplace_matrix,&material_fun);
+    } else {
+       FEValues<dim> fe_values(fe, quadrature_formula, 
+			       update_values | update_gradients | update_JxW_values);
+       FullMatrix<double>   cell_matrix(n_cell_dof, n_cell_dof);
+       vector<unsigned int> local_dof_indices(n_cell_dof);
+       
+
+       typename DoFHandler<dim>::active_cell_iterator
+	 cell(dof_handler.begin_active()),
+	 endc(dof_handler.end());
+
+       for (; cell!=endc; ++cell){
+	 double material = 1.0;
+	 const map<uint_t,double>::const_iterator 
+	   m(dielectric_material.find(cell->material_id()));
+
+	 fe_values.reinit (cell);
+	 cell_matrix = 0;
+	 
+	 if(m != dielectric_material.end()) material = m->second;
+	 
+	 for (unsigned int i=0; i<n_cell_dof; i++)
+	   for (unsigned int j=0; j<n_cell_dof; j++)
+	     for (unsigned int q=0; q<n_q_pts; q++)
+	       // TODO: Brug evt. præberegnede værdier.
+	       cell_matrix(i,j) += (fe_values.shape_grad(i, q) *
+				    fe_values.shape_grad(j, q) *
+				    fe_values.JxW(q));
+
+	 cell->get_dof_indices (local_dof_indices);
+
+
+	 for (unsigned int i=0; i<n_cell_dof; i++)
+	   for (unsigned int j=0; j<n_cell_dof; j++)
+	     laplace_matrix.add (local_dof_indices[i],
+				 local_dof_indices[j],
+				 // NB: TODO: This is too QM-specific for a general library! :-(
+				 material*cell_matrix(i,j));	 
+       }
+
     }
 
     hanging_node_constraints.condense (laplace_matrix);
@@ -165,8 +205,9 @@ namespace dealii {
 
     // Homogeneous von Neumann boundary condition is a noop -- hom. von Neumann is default behaviour
     cerr << "Homogeneous von Neumann boundaries: "<<endl;
-    for(size_t i=0;i<homogeneous_neumann_boundaries.size();i++)
-      cerr << "\t" << static_cast<int>(homogeneous_neumann_boundaries[i]) << endl;
+    for(set<unsigned char>::const_iterator b=homogeneous_neumann_boundaries.begin();
+	b != homogeneous_neumann_boundaries.end(); b++)
+      cerr << "\t" << static_cast<int>(*b) << endl;
 
     // Apply all Dirichlet boundary conditions
     if(!dirichlet_boundaries.empty()){
@@ -287,6 +328,15 @@ namespace dealii {
 
     update_boundary_conditions();
     get_positions();
+    // TODO: Before I can place the preconditioner here, I have to figure
+    //       out how to separate initialization of boundary values of the
+    //       left hand side matrix from the right hand side vector.
+    //
+    //    cerr << "Initializing preconditioner."<<endl;
+    //    delete prec;
+    //    prec = new PreconditionSSOR<>();
+    //    prec->initialize(laplace_matrix);
+    //    cerr << "Update done!"<<endl;
   }
   // density(x) += f(x)
   fespace_member(void)
@@ -463,13 +513,15 @@ namespace dealii {
   }
 
   fespace_member(void)
-  SolvePoisson(const FEFunction& density, FEFunction& result) const
+  SolvePoisson(const FEFunction& rho, FEFunction& result) const
   {
     SparseMatrix lhsmatrix;	// TODO: Figure out how to apply BVCs to laplace_matrix and rhs seperately.
     lhsmatrix.reinit(laplace_matrix.get_sparsity_pattern());
     lhsmatrix.copy_from(laplace_matrix);
 
     result.resize(dof_handler.n_dofs());
+    
+    FEFunction density(rho);
 
     dofVector rhs(n_dofs);
     overlap_matrix.vmult(rhs,density.coefficients);
@@ -486,19 +538,24 @@ namespace dealii {
 					result.coefficients,
 					rhs);
 
-    cerr << "Fixed DoFs: {";
-    for(map<uint_t,double>::const_iterator m=boundary_values.begin();m!=boundary_values.end();m++)
-      cerr << "{"<<m->first << ","<<m->second<<"}, ";
-    cerr << "Null};" << endl;
+//     cerr << "Fixed DoFs: {";
+//     for(map<uint_t,double>::const_iterator m=boundary_values.begin();m!=boundary_values.end();m++)
+//       cerr << "{"<<m->first << ","<<m->second<<"}, ";
+//     cerr << "Null};" << endl;
 
     // SOLVE
     SolverControl solver_control (1000/*max iterations - should depend on problem size?*/, 1e-12/*tolerance*/);
     SolverCG<>    cg (solver_control);
     
-    PreconditionSSOR<> prec;
-    prec.initialize(lhsmatrix);
-    cg.solve (lhsmatrix, result.coefficients, rhs, prec);
-
+    // TODO: Before I can remove the preconditioner from here, I have
+    // to figure out how to separate initialization of boundary values
+    // of the left hand side matrix from the right hand side vector.
+    //
+    {
+      PreconditionSSOR<> prec;
+      prec.initialize(lhsmatrix);
+      cg.solve (lhsmatrix, result.coefficients, rhs, prec);
+    }
 
     //    printf("\\int u = %g\n",Integrate(result)); 
     hanging_node_constraints.distribute (result.coefficients); // distribute solution
@@ -507,11 +564,13 @@ namespace dealii {
   }
 
   fespace_member(void)
-  SolvePoisson(const PointFunction& density, FEFunction& result) const
+  SolvePoisson(const PointFunction& rho, FEFunction& result) const
   {
     SparseMatrix lhsmatrix;
     lhsmatrix.reinit(laplace_matrix.get_sparsity_pattern());
     lhsmatrix.copy_from(laplace_matrix);
+
+    PointFunction density(rho);
 
     FEValues<dim> fe_values(fe, quadrature_formula, update_values | update_JxW_values);
 
@@ -547,11 +606,6 @@ namespace dealii {
 
     hanging_node_constraints.condense(rhs);
 
-//     cerr << "Fixed dofs:\n";
-//     for(map<uint_t,double>::const_iterator m=boundary_values.begin();
-// 	m!=boundary_values.end();m++){
-//       cerr << m->first << " -> " << m->second << endl;
-//     }
     MatrixTools::apply_boundary_values (boundary_values,
 					lhsmatrix,
 					result.coefficients,
@@ -560,10 +614,16 @@ namespace dealii {
     // SOLVE
     SolverControl solver_control (2000/*max iterations - should depend on problem size?*/, 1e-10/*tolerance*/);
     SolverCG<>    solver (solver_control);
-      
-    PreconditionSSOR<> prec;
-    prec.initialize(lhsmatrix);
-    solver.solve (lhsmatrix, result.coefficients, rhs, prec);
+
+    // TODO: Before I can remove the preconditioner from here, I have
+    // to figure out how to separate initialization of boundary values
+    // of the left hand side matrix from the right hand side vector.
+    //
+    {
+      PreconditionSSOR<> prec;
+      prec.initialize(lhsmatrix);      
+      solver.solve (lhsmatrix, result.coefficients, rhs, prec);
+    }
 
     hanging_node_constraints.distribute (result.coefficients); // distribute solution
   }
@@ -660,6 +720,47 @@ namespace dealii {
   }
 
   double approximate_cell_distance(const CellAccessor<3>& c, const Point<3>& X);
+
+  fespace_member(void) refine_max_cell_size(const double max_diameter, const bool update_at_end)
+  {
+    typedef typename DoFHandler<dim>::active_cell_iterator cell_iterator;
+    list<cell_iterator> parents, candidates;
+    cell_iterator cell;
+    
+    for(cell = dof_handler.begin_active(); cell != dof_handler.end(); cell++)
+      candidates.push_back(cell);
+
+    bool done = false;
+    while(!done){
+      done = true;
+      parents.clear();
+      size_t n_refined = 0;
+
+      double biggest_diameter = 0;
+      for(typename list<cell_iterator>::const_iterator c = candidates.begin(); c != candidates.end(); c++){
+	size_t num_points_in_cell = 0, num_points_near_cell = 0;
+	const cell_iterator& cell(*c);
+	
+	if(cell->diameter()>biggest_diameter) biggest_diameter = cell->diameter();
+	if(cell->diameter()>max_diameter){
+	  //	  cerr << "Refining cell." << endl;
+	  cell->set_refine_flag();
+	  parents.push_back(cell);
+	  done = false;
+	  n_refined++;
+	}
+      }
+      cerr << "Refining "<<n_refined<<" cells. Biggest diameter is " << biggest_diameter << endl;
+      triangulation.execute_coarsening_and_refinement();
+      
+      candidates.clear();
+      for (typename list<cell_iterator>::iterator p(parents.begin());p!=parents.end();p++){
+	for(size_t i=0;i<(1<<dim);i++)
+	  candidates.push_back((*p)->child(i));
+      }
+    }
+    if(update_at_end) update();
+  }
 
 
   // This refines to a mesh with the following two conditions:
@@ -788,9 +889,9 @@ namespace dealii {
       if(max_density < pow(2.0,dim)*dE) done_refining = true;
       else 
 	for (typename list<cell_iterator>::iterator p(parents.begin());p!=parents.end();p++){
-	  for(size_t i=0;i<(1<<dim);i++)
-	    candidates.push_back((*p)->child(i));
-	}
+         for(size_t i=0;i<(1<<dim);i++)
+           candidates.push_back((*p)->child(i));
+       }
 
 
     }
@@ -814,8 +915,8 @@ namespace dealii {
     bool done_refining = false;
 
     typename DoFHandler<dim>::active_cell_iterator
-	cell = dof_handler.begin_active(),
-	endc = dof_handler.end();      
+      cell = dof_handler.begin_active(),
+      endc = dof_handler.end();      
 
     typedef typename DoFHandler<dim>::cell_iterator cell_iterator;
     list<cell_iterator> parents, candidates;

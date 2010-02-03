@@ -63,7 +63,8 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
 
   /* Output -- perhaps move to a separate class.  */
   virtual void write_mesh(const std::string& path) const = 0;
-  virtual void write_function(const std::string& path, const FEFunction& f) const = 0;
+  virtual void write_function(const std::string& path, const FEFunction& f, 
+			      const std::string name = std::string("f")) const = 0;
   virtual void write_dof_sparsity(const string& path) const = 0;
 
   /* Useful stuff for refinement */

@@ -42,18 +42,30 @@ namespace dealii{
 
   fespace_member(void) write_mesh(const string& path) const 
   {
-    const string supported_formats_str[] = {"dx","msh","ucd","eps","xfig","gpl",""};
-    enum {DX,MSH,UCD,EPS,XFIG,GNUPLOT} supported_formats;
+    const string supported_formats_str[] = {"flags","dx","msh","ucd","eps","xfig","gpl",""};
+    enum {INTERNAL,DX,MSH,UCD,EPS,XFIG,GNUPLOT} supported_formats;
 
     ofstream file(path.c_str());
     GridOut out;
 
     switch(lookup_format(supported_formats_str,path)) {
+    case INTERNAL:
+      {
+	ofstream f(path.c_str());
+	triangulation.write_flags(f);
+	f.close();
+      }
+      break;
     case DX:
       out.write_dx(triangulation,file);
       break;
     case MSH:
-      // ... + indicators
+      // ... + material id indicators. It doesn't seem as if deal.ii
+      // supports this at all??  Except for writing OpenDX. But then
+      // it doesn't seem that it can read DX! WTF?  Possible solution
+      // (a bit of a hack): Write cell numbers with nonzero material
+      // ids to a seperate file.
+      out.set_flags(GridOutFlags::Msh(true,true));
       out.write_msh(triangulation,file);
       break;
     case UCD:
@@ -76,7 +88,7 @@ namespace dealii{
 
 
 
-  fespace_member(void) write_function(const string& path, const FEFunction& f) const
+  fespace_member(void) write_function(const string& path, const FEFunction& f, const string name) const
   {
     const string supported_formats_str[] = {"dx","eps","gmv","pov","plt","pltx","ucd","vtk","dealII","gpl",""};
     enum {DX,EPS,GMV,POVRAY,TECPLOT,TECPLOT_BINARY,UCD,VTK,DEALII,GNUPLOT} supported_formats;
@@ -85,7 +97,7 @@ namespace dealii{
     DataOut<dim> out;
 
     out.attach_dof_handler (dof_handler);
-    out.add_data_vector (f.coefficients, "f");
+    out.add_data_vector (f.coefficients, name.c_str());
     out.build_patches ();
    
     switch(lookup_format(supported_formats_str,path)) {
