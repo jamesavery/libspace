@@ -39,7 +39,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <netcdfcpp.h>
 
 using namespace std;
 
