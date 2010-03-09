@@ -30,8 +30,8 @@ template <int dim, class PF = PointFunction_Simple<>, class PO = PF >
   virtual double Integrate(const PF& f, const PO& V, const PF& g) const = 0;
 
   virtual double LaplaceElement(const size_t i, const size_t j) const = 0;
-  /* Solving PDE's */
-  virtual void SolvePoisson(const PF& density, PF& vHartree) const = 0;
+  /* Solving \del^2\phi(x) = -4\pi\rho(x) */
+  virtual void SolvePoisson(const PF& rho, PF& phi) const = 0;
 
  private:
 };
