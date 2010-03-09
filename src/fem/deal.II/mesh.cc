@@ -414,7 +414,12 @@ namespace dealii {
   fespace_member(double)
   Integrate(const FEFunction& f, const FEFunction& V, const FEFunction& g) const
   {
-    return 0;			// TODO: FEFunction -> PointFunction; 
+    PointFunction f_pt, g_pt, V_pt;
+    // Slow.
+    ConstructPointFunction(f,f_pt);
+    ConstructPointFunction(g,g_pt);
+    ConstructPointFunction(V,V_pt);
+    return Integrate(f_pt,g_pt,V_pt);
   }
 
   fespace_member(void)
@@ -612,7 +617,7 @@ namespace dealii {
 					rhs);
 
     // SOLVE
-    SolverControl solver_control (2000/*max iterations - should depend on problem size?*/, 1e-10/*tolerance*/);
+    SolverControl solver_control (2000/*max iterations - should depend on problem size?*/, 1e-12/*tolerance*/);
     SolverCG<>    solver (solver_control);
 
     // TODO: Before I can remove the preconditioner from here, I have
