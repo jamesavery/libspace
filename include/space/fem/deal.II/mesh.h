@@ -132,7 +132,7 @@ namespace dealii {
     /* Point-wise point-management -- move to fespace.h/fespace_pointwise.cc */
 
     uint_t       n_q_pts;	/**< Number of quadrature points per cell. */
-    uint_t       n_cells;	/**< Number of quadrature points per cell. */
+    uint_t       n_cells;	/**< Number of cells. */
     uint_t       n_cell_dof;	/**< Number of DOF per cell. */
     uint_t       n_dofs;	/**< Total number of dofs. */
     uint_t       quadrature_order;
@@ -165,6 +165,8 @@ namespace dealii {
     void refine_grid(const Vector<float>& estimated_error_per_cell,bool update_at_end=true);
     void refine_to_density(const ScalarFunction& density, const double dE,bool update_at_end=true);
     void refine_to_density(PointFunctional& density, const double dE,bool update_at_end=true);
+    void refine_to_density_curvature(const FEFunction& density_fe, 
+				     const double dC, bool update_at_end=true);
     void refine_max_cell_size(const double max_diameter, const bool update_at_end=true);
     void refine_around_points(const std::vector<coordinate> xs, const double max_diameter=INFINITY, 
 			      const double near_diameter=0,const bool update_at_end=true);

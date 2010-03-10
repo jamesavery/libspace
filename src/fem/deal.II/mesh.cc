@@ -27,6 +27,8 @@
 #  include <fe/fe_tools.h>
 #  include <lac/solver_selector.h>
 
+#  include <numerics/derivative_approximation.h>
+
 // Auxiliary stuff. Perhaps move to separate file.
 #define fespace_member(returntype) template <int dim> returntype FESpace<dim>::
 
@@ -908,7 +910,6 @@ namespace dealii {
     const size_t N_q = n_q_pts;
 
     fprintf(stderr,"Refine to density %g.\n",dE);
-    vector<double>       approx_values(N_q), real_values(N_q);
     vector< Point<dim> > qpoints(N_q);
 
     FEValues<dim> fe_points(fe, quadrature_formula, update_quadrature_points);
@@ -984,6 +985,40 @@ namespace dealii {
     if(update_at_end) update();    
   }
 
+  fespace_member(void) refine_to_density_curvature(const FEFunction& density_fe, 
+						   const double dC, bool update_at_end)
+  {
+    // Refines mesh with the goal of making each cell contain close to dC of density curvature
+    const size_t N_q = n_q_pts;
+
+    fprintf(stderr,"Refine to density curvature %g.\n",dC);
+    vector< Point<dim> > qpoints(N_q);
+
+    FEValues<dim> fe_values(fe, quadrature_formula, update_quadrature_points | update_JxW_values);
+
+    Vector<float> curvatures(n_cells);
+    DerivativeApproximation::approximate_second_derivative(dof_handler,density_fe,curvatures);
+
+
+    typename DoFHandler<dim>::active_cell_iterator
+      cell = dof_handler.begin_active(),
+      endc = dof_handler.end();      
+
+    size_t i;
+    float curve_min = INFINITY, curve_max = 0;
+    for(cell = dof_handler.begin_active(), i=0;cell!=endc;cell++,i++){
+      if(curvatures[i]>dC) cell->set_refine_flag();
+      if(curvatures[i]<curve_min) curve_min = curvatures[i];
+      if(curvatures[i]>curve_max) curve_max = curvatures[i];
+	
+    }
+    fprintf(stderr,"Minimal cell curve norm: %g\n"
+	           "Maximal cell curve norm: %g\n",
+	    curve_min,curve_max);
+    
+
+    if(update_at_end) update();
+  }
   
   fespace_member(void) refine_grid(const cellVector& estimated_error_per_cell, bool update_at_end)
   {
