@@ -165,7 +165,7 @@ namespace dealii {
     void refine_grid(const Vector<float>& estimated_error_per_cell,bool update_at_end=true);
     void refine_to_density(const ScalarFunction& density, const double dE,bool update_at_end=true);
     void refine_to_density(PointFunctional& density, const double dE,bool update_at_end=true);
-    void refine_to_density_curvature(const FEFunction& density_fe, 
+    void refine_to_density_curvature(PointFunctional& density_fe, 
 				     const double dC, bool update_at_end=true);
     void refine_max_cell_size(const double max_diameter, const bool update_at_end=true);
     void refine_around_points(const std::vector<coordinate> xs, const double max_diameter=INFINITY, 

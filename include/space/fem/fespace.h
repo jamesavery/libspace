@@ -70,7 +70,7 @@ template <int dim_, class PointFunction_, class FEFunction_, class FEOperator_>
   /* Useful stuff for refinement */
   class PointFunctional {
   public:
-    virtual PointFunction& fill(const std::vector<coordinate>& positions) = 0;
+    virtual const PointFunction& fill(const std::vector<coordinate>& positions) = 0;
   };
 };
 

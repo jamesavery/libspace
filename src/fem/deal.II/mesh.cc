@@ -298,13 +298,14 @@ namespace dealii {
   {
     //    DoFRenumbering::Cuthill_McKee(dof_handler);
 
-    dof_handler.distribute_dofs(fe);  
-    
+
     n_cells        = triangulation.n_active_cells();
     n_q_pts        = quadrature_formula.size();
     n_cell_dof     = fe_values.dofs_per_cell; 
     n_dofs         = dof_handler.n_dofs();	   
 
+    dof_handler.distribute_dofs(fe);  
+    
     sparsity_pattern.reinit (dof_handler.n_dofs(),
 			     dof_handler.n_dofs(),
 			     dof_handler.max_couplings_between_dofs());
@@ -473,7 +474,13 @@ namespace dealii {
 
   fespace_member(void) get_positions()
   {
+    dof_handler.distribute_dofs(fe);
     FEValues<dim> fe_values(fe, quadrature_formula, update_quadrature_points|update_values|update_JxW_values);
+
+    n_cells        = triangulation.n_active_cells();
+    n_q_pts        = quadrature_formula.size();
+    n_cell_dof     = fe_values.dofs_per_cell; 
+    n_dofs         = dof_handler.n_dofs();	   
 
     point_positions.resize(n_cells*n_q_pts);
     point_weights.resize(n_cells*n_q_pts);
@@ -985,40 +992,56 @@ namespace dealii {
     if(update_at_end) update();    
   }
 
-  fespace_member(void) refine_to_density_curvature(const FEFunction& density_fe, 
+  fespace_member(void) refine_to_density_curvature(PointFunctional& density_pf, 
 						   const double dC, bool update_at_end)
   {
+    get_positions();
+
     // Refines mesh with the goal of making each cell contain close to dC of density curvature
-    const size_t N_q = n_q_pts;
-
     fprintf(stderr,"Refine to density curvature %g.\n",dC);
-    vector< Point<dim> > qpoints(N_q);
-
-    FEValues<dim> fe_values(fe, quadrature_formula, update_quadrature_points | update_JxW_values);
-
-    Vector<float> curvatures(n_cells);
-    DerivativeApproximation::approximate_second_derivative(dof_handler,density_fe,curvatures);
-
 
     typename DoFHandler<dim>::active_cell_iterator
-      cell = dof_handler.begin_active(),
-      endc = dof_handler.end();      
+      cell,  endc = dof_handler.end();
 
-    size_t i;
-    float curve_min = INFINITY, curve_max = 0;
-    for(cell = dof_handler.begin_active(), i=0;cell!=endc;cell++,i++){
-      if(curvatures[i]>dC) cell->set_refine_flag();
-      if(curvatures[i]<curve_min) curve_min = curvatures[i];
-      if(curvatures[i]>curve_max) curve_max = curvatures[i];
-	
+    bool done = false;
+    while(!done){
+      done = true;
+      PointFunction density_pt(density_pf.fill(point_positions));
+      FEFunction density_fe;
+      
+      fprintf(stderr,"Constructing FEFunction from PointFunction.\n");
+      ConstructFEFunction(density_pt,density_fe);
+      
+      Vector<float> curvatures(n_cells);
+      fprintf(stderr,"Approximating second derivatives.\n");
+      DerivativeApproximation::approximate_second_derivative(dof_handler,density_fe.coefficients,curvatures);
+
+      size_t i;
+      int num_refined = 0;
+      float curve_min = INFINITY, curve_max = 0;
+      fprintf(stderr,"Setting refinement flags.\n");
+      for(cell = dof_handler.begin_active(), i=0;cell!=endc;cell++,i++){
+	curvatures[i] *= pow(cell->diameter(),3);
+	if(curvatures[i]>dC){
+	  cell->set_refine_flag();
+	  num_refined++;
+	  done = false;
+	}
+	if(curvatures[i]<curve_min) curve_min = curvatures[i];
+	if(curvatures[i]>curve_max) curve_max = curvatures[i];
+      }
+      fprintf(stderr,"Minimal cell curve norm: %g\n"
+	      "Maximal cell curve norm: %g (target %g)\n",
+	      curve_min,curve_max,dC);
+
+      fprintf(stderr,"Refining %d cells.\n",num_refined);
+      triangulation.execute_coarsening_and_refinement();
+      get_positions();
     }
-    fprintf(stderr,"Minimal cell curve norm: %g\n"
-	           "Maximal cell curve norm: %g\n",
-	    curve_min,curve_max);
-    
 
     if(update_at_end) update();
   }
+
   
   fespace_member(void) refine_grid(const cellVector& estimated_error_per_cell, bool update_at_end)
   {
