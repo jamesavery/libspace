@@ -173,6 +173,7 @@ namespace dealii {
     void refine_around_regions(const VolumeFunction<dim>& V, const double max_diameter, 
 			       const bool update_at_end=true);
     void refine_grid(const size_t n,bool update_at_end=true);
+    void refine_to_regularize(double max_aspect_ratio=2.0);
 
     /* Output -- perhaps move to a separate class.  */
     void write_mesh(const std::string& path) const;

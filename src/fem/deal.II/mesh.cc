@@ -1063,6 +1063,47 @@ namespace dealii {
     if(update_at_end) update();
   }
 
+  fespace_member(void) refine_to_regularize(double max_aspect_ratio)
+  {
+    fprintf(stderr,"Refine to regularize; maximal aspect ratio %g:1.\n", max_aspect_ratio);
+
+    typename DoFHandler<dim>::active_cell_iterator
+      cell,  endc = dof_handler.end();
+
+    bool done = false;
+    while(!done){
+      done = true;
+      unsigned int num_refined = 0;
+      double max_found_ratio = 1.0, Lm[dim];
+      int im,jm;
+
+      for(cell = dof_handler.begin_active();cell!=endc;cell++){
+	double L[dim];
+	for(int i=0; i<dim;i++){
+	  //	  fprintf(stderr,"Extent in direction %d is:\n",i);
+	  L[i] = cell->extent_in_direction(i);
+	  //fprintf(stderr,"%g\n",L[i]);
+	}
+	for(int i=0; i<dim;i++)
+	  for(int j=0; j<dim;j++)
+	    if(L[i] > max_aspect_ratio*L[j]){
+	      if(L[i]/L[j] > max_found_ratio){
+		max_found_ratio = L[i]/L[j];
+		im = i; jm = j;
+		for(int k=0;k<dim;k++) Lm[k] = L[k];
+	      }
+	      //	      fprintf(stderr,"Cell has aspect ratio %g:%g:%g - refining!\n",L[0],L[1],L[2]);
+	      cell->set_refine_flag(RefinementCase<dim>::cut_axis(i));
+	      done = false;
+	      num_refined++;
+	    } 
+      }
+      fprintf(stderr,"Refining %d cells. Maximal aspect ratio found is %g. (%g:%g:%g, %d>%d)\n",num_refined,max_found_ratio,
+	      Lm[0],Lm[1],Lm[2],im,jm);
+      triangulation.execute_coarsening_and_refinement();
+    }
+  }
+
   fespace_member(double) Value(const FEFunction& f, const coordinate& x) const 
   {
     return VectorTools::point_value(dof_handler, f.coefficients, PointWrap<FESpace>(x));
