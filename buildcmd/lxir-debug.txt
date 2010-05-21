@@ -1,0 +1,1 @@
+CC=icc CXX=icpc CFLAGS="-g3" CXXFLAGS="-g3" ./configure --prefix=${HOME}/work --with-compiler-type=intel --with-dimensions=3 --with-lapack-ldflags="-L${MKLROOT}/lib/em64t ${MKLLAPACK}" --enable-debug
