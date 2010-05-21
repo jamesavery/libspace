@@ -8,11 +8,11 @@
 
 define([svnversion], esyscmd([sh -c "date '+%y-%j'|tr -d '\n'"]))
 
-AC_INIT([The Space Discretization Library], [0.2.svnversion], [avery@diku.dk],[libspace])
+AC_INIT([The Space Discretization Library], [0.3.svnversion], [avery@diku.dk],[libspace])
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
 
 MAJORVERSION=0
-MINORVERSION=2
+MINORVERSION=3
 LTAGE=`date +%j | sed 's/^0*//'`
 
 LONGNAME="Space Discretization Library"
@@ -65,6 +65,11 @@ AC_ARG_ENABLE(lapack,
 	enable_lapack=$enableval,
 	enable_lapack=no
 )
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING([--enable-debug],[Build with debugging libraries.]),
+	dealiipkg="deal.II.g",
+	dealiipkg="deal.II"
+)
 
 PKG_CHECK_MODULES(NETCDF,      [netcdf >= 3],
 			       [AC_DEFINE(HAS_NETCDF,1,[System has netcdf]) 
@@ -78,9 +83,9 @@ PKG_CHECK_MODULES(LIBMESH,  libmesh,
 			       [AC_DEFINE(HAS_LIBMESH,1,[System has the libmesh FEM library (http://libmesh.sf.net)])
 			        REQUIRED_PACKAGES="$REQUIRED_PACKAGES libmesh"],[AC_MSG_WARN([No libmesh])])
 
-PKG_CHECK_MODULES(DEALII,   deal.II,
+PKG_CHECK_MODULES(DEALII,   $dealiipkg,
 			    [AC_DEFINE(HAS_DEALII,1,[System has the deal.II FEM library (http://dealii.org)]) 
-			    REQUIRED_PACKAGES="$REQUIRED_PACKAGES deal.II"])
+			    REQUIRED_PACKAGES="$REQUIRED_PACKAGES $dealiipkg"])
 PKG_CHECK_MODULES(DOLFIN,   dolfin,
    			     [AC_DEFINE(HAS_DOLFIN,1,[System has the Dolfin FEM library (http://fenics.org)])
                               REQUIRED_PACKAGES="$REQUIRED_PACKAGES dolfin"],[AC_MSG_WARN([No dolfin])])
